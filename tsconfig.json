@@ -28,6 +28,6 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "next.config.js"
-, "src/components/AppIcon.jsx"  ],
+, "src/components/AppIcon.jsx", "src/app/vendor/products/components/AddProductModal.tsx", "src/app/vendor/storefront/components/StorefrontPreview.jsx" ],
   "exclude": ["node_modules"]
 }
