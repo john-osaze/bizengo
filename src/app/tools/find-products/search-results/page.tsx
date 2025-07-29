@@ -284,7 +284,7 @@ const SearchResults = () => {
 
     return (
         <div className="min-h-screen bg-background">
-            <div className="fixed top-0 left-0 right-0 z-[250] bg-surface border-b border-border">
+            <div className="fixed top-100 left-0 right-0 z-[250] bg-white border-b border-border">
                 <div className="px-4 md:px-6 py-3">
                     <div className="flex items-center space-x-3">
                         <div className="flex-1 relative">

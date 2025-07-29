@@ -28,6 +28,6 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "next.config.js"
-  ],
+, "src/components/AppIcon.jsx"  ],
   "exclude": ["node_modules"]
 }

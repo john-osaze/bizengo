@@ -55,16 +55,16 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
 
                 {/* Discount Badge */}
                 {discountPercentage > 0 && (
-                    <div className="absolute top-2 left-2 bg-accent text-white px-2 py-1 rounded-full text-xs font-medium">
+                    <div className="absolute top-2 left-2 bg-black text-white px-2 py-1 rounded-full text-xs font-medium">
                         -{discountPercentage}%
                     </div>
                 )}
 
                 {/* Availability Status */}
                 <div className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-medium ${product.availability === 'In Stock'
-                    ? 'bg-success-50 text-success border border-success-100'
+                    ? 'bg-gray-100 text-success border border-success-100'
                     : product.availability === 'Limited Stock'
-                        ? 'bg-warning-50 text-warning border border-warning-100'
+                        ? 'bg-gray-100 text-warning border border-warning-100'
                         : 'bg-error-50 text-error border border-error-100'
                     }`}>
                     {product.availability}

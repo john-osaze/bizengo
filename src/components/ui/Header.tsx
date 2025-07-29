@@ -49,6 +49,8 @@ const Header: React.FC = () => {
                 return 'Profile';
             case '/create-listing':
                 return 'Create Listing';
+            case '/vendor':
+                return 'Vendor Dashboard';
             default:
                 return 'LocalMarket';
         }
@@ -78,7 +80,7 @@ const Header: React.FC = () => {
     const showSearch = pathname !== '/create-listing';
 
     return (
-        <header className="sticky top-0 z-[200] bg-surface border-b border-border">
+        <header className="sticky top-0 z-[200] bg-white border-b border-border">
             <div className="h-16 md:h-18 px-4 md:px-6 flex items-center justify-between">
 
                 <div className="flex items-center space-x-4">
@@ -164,13 +166,13 @@ const Header: React.FC = () => {
 
                         {/* Desktop View: Hidden below sm breakpoint, displayed as flex above */}
                         <div className="hidden sm:flex items-center gap-2">
-                            <button
-                                onClick={() => router.push('/tools')}
+                            <Link
+                                href="/vendor/dashboard"
                                 className="p-2 rounded-lg hover:bg-surface-secondary transition-colors duration-200 relative text-sm font-medium text-primary"
-                                aria-label="All tools"
+                                aria-label="Vendor tools"
                             >
-                                All tools
-                            </button>
+                                Create a Storefront
+                            </Link>
                             <button
                                 onClick={() => router.push('/tools/find-products/user-profile')}
                                 className="p-2 rounded-lg hover:bg-surface-secondary transition-colors duration-200 relative"
@@ -194,13 +196,13 @@ const Header: React.FC = () => {
 
                             {isOpen && (
                                 <div className="absolute top-full right-0 mt-2 w-60 bg-white rounded-lg shadow-xl z-10 overflow-hidden border border-surface-border">
-                                    <button
-                                        onClick={() => handleNavigation('/tools')}
+                                    <Link
+                                        href="/vendor/dashboard"
                                         className="block w-full text-left p-3 text-sm font-medium text-text-primary hover:bg-surface-secondary transition-colors duration-200"
-                                        aria-label="All tools option"
+                                        aria-label="Vendor option"
                                     >
-                                        All tools
-                                    </button>
+                                        Create a Storefront
+                                    </Link>
                                     <button
                                         onClick={() => handleNavigation('/tools/find-products/user-profile')}
                                         className=" w-full text-left p-3 text-sm font-medium text-text-primary hover:bg-surface-secondary transition-colors duration-200 flex items-center gap-2"

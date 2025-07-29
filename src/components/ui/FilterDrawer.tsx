@@ -258,7 +258,7 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({ isOpen, onClose }) => {
             </div>
 
             {/* Desktop Sidebar */}
-            <div className={`hidden md:block fixed left-0 top-32 bottom-0 w-80 bg-surface border-r border-border z-300 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'
+            <div className={`hidden md:block fixed left-0 top-32 bottom-0 w-80 bg-white border-r border-border z-300 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'
                 }`}>
                 <div className="flex flex-col h-full">
                     {/* Header */}

@@ -59,7 +59,7 @@ const BottomTabNavigation: React.FC = () => {
     return (
         <>
             {/* Mobile Bottom Navigation */}
-            <nav className="fixed bottom-0 left-0 right-0 z-100 bg-surface border-t border-border md:hidden">
+            <nav className="fixed bottom-0 left-0 right-0 z-100 bg-white border-t border-border md:hidden">
                 <div className="flex items-center justify-around px-4 py-2 safe-area-inset-bottom">
                     {navigationItems.map((item) => {
                         const isActive = isActiveTab(item.path);
@@ -91,7 +91,7 @@ const BottomTabNavigation: React.FC = () => {
             </nav>
 
             {/* Desktop Top Navigation */}
-            <nav className="hidden md:block fixed bottom-0 left-0 right-0 z-100 bg-surface border-t border-border w-full"> {/* Changed classes */}
+            <nav className="hidden md:block fixed bottom-0 left-0 right-0 z-100 bg-white border-t border-border w-full"> {/* Changed classes */}
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="flex items-center justify-center space-x-8 py-4">
                         {navigationItems.map((item) => {

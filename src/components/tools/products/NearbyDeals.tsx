@@ -120,7 +120,7 @@ const NearbyDeals: React.FC<NearbyDealsProps> = ({ onRefresh }) => {
                                     className="object-cover"
                                     sizes="288px"
                                 />
-                                <div className="absolute top-3 left-3 bg-accent text-white px-2 py-1 rounded-full text-xs font-medium">
+                                <div className="absolute top-3 left-3 bg-accent text-black px-2 py-1 rounded-full text-xs font-medium">
                                     {deal.discount}% OFF
                                 </div>
                                 <div className="absolute top-3 right-3 bg-black bg-opacity-50 text-white px-2 py-1 rounded-full text-xs">

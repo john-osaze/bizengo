@@ -204,7 +204,7 @@ const MyListings = () => {
                                     sizes="(max-width: 600px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                 />
                                 <div className="absolute top-3 left-3">
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(listing.status)}`}>
+                                    <span className={`px-2 py-1 rounded-full bg-gray-50 text-xs font-medium border ${getStatusColor(listing.status)}`}>
                                         {getStatusLabel(listing.status)}
                                     </span>
                                 </div>
