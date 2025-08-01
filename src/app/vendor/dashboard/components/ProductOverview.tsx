@@ -1,8 +1,8 @@
 import React from 'react';
 import { useRouter } from 'next/navigation'
 import Icon from '@/components/AppIcon';
-import Button from '@/components/ui/ButtonAlt';
-import AppImage from '@/components/ui/AppImageAlt';
+import Button from '@/components/ui/alt/ButtonAlt';
+import AppImage from '@/components/ui/alt/AppImageAlt';
 
 interface Product {
   id: string;

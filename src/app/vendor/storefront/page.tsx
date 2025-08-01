@@ -8,7 +8,7 @@ import StorefrontCustomization from './components/StorefrontCustomization';
 import StorefrontPreview from './components/StorefrontPreview';
 import StorefrontSettings from './components/StorefrontSettings';
 import PublicStorefront from './components/PublicStorefront';
-import Button from '@/components/ui/ButtonAlt';
+import Button from '@/components/ui/alt/ButtonAlt';
 import Icon from '@/components/AppIcon';
 
 interface StorefrontTheme {

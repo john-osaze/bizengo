@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation'
 import Icon from '@/components/AppIcon';
-import Button from '@/components/ui/ButtonAlt';
+import Button from '@/components/ui/alt/ButtonAlt';
 
 type NotificationType = 'order' | 'review' | 'inventory' | 'payment' | 'system';
 type FilterType = 'all' | 'unread' | NotificationType;

@@ -1,15 +1,39 @@
 import React from 'react';
-import Icon from '../../../components/AppIcon';
+import Icon from '@/components/AppIcon';
 
-const OrderStatistics = ({ statistics }) => {
-  const formatCurrency = (amount) => {
+interface OrderStatistics {
+  totalOrders: number;
+  ordersChange: number;
+  pendingOrders: number;
+  pendingChange: number;
+  revenueToday: number;
+  revenueChange: number;
+  avgOrderValue: number;
+  avgOrderChange: number;
+}
+
+interface OrderStatisticsProps {
+  statistics: OrderStatistics;
+}
+
+interface StatCard {
+  title: string;
+  value: string;
+  change: number;
+  icon: string;
+  color: string;
+  bgColor: string;
+}
+
+const OrderStatistics: React.FC<OrderStatisticsProps> = ({ statistics }) => {
+  const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD'
     }).format(amount);
   };
 
-  const statCards = [
+  const statCards: StatCard[] = [
     {
       title: 'Total Orders',
       value: statistics.totalOrders.toLocaleString(),

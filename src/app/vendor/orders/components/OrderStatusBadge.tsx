@@ -1,9 +1,22 @@
 import React from 'react';
-import Icon from '../../../components/AppIcon';
+import Icon from '@/components/AppIcon';
 
-const OrderStatusBadge = ({ status, size = 'default' }) => {
-  const getStatusConfig = (status) => {
-    const configs = {
+type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded' | any;
+
+interface OrderStatusBadgeProps {
+  status: OrderStatus;
+  size?: 'default' | 'sm';
+}
+
+interface StatusConfig {
+  label: string;
+  icon: string;
+  className: string;
+}
+
+const OrderStatusBadge: React.FC<OrderStatusBadgeProps> = ({ status, size = 'default' }) => {
+  const getStatusConfig = (status: OrderStatus): StatusConfig => {
+    const configs: Record<OrderStatus, StatusConfig> = {
       pending: {
         label: 'Pending',
         icon: 'Clock',
@@ -35,7 +48,7 @@ const OrderStatusBadge = ({ status, size = 'default' }) => {
         className: 'bg-gray-100 text-gray-700 border-gray-200'
       }
     };
-    return configs[status] || configs.pending;
+    return configs[status];
   };
 
   const config = getStatusConfig(status);

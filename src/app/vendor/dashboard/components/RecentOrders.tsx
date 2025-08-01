@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation'
 import Icon from '@/components/AppIcon';
-import Button from '@/components/ui/ButtonAlt'
+import Button from '@/components/ui/alt/ButtonAlt'
 type OrderStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
 type DeliveryType = 'delivery' | 'pickup' | 'in-store';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import Icon from './AppIcon';
+import Icon from '../../AppIcon';
 
 type ButtonVariant = 
   | 'primary' 
@@ -28,7 +28,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   disabled?: boolean;
   loading?: boolean;
   icon?: React.ReactElement;
-  iconName?: import('./AppIcon').LucideIconName;
+  iconName?: import('../../AppIcon').LucideIconName;
   iconPosition?: IconPosition;
   iconSize?: number;
   iconColor?: string;

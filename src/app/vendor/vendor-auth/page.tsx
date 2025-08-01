@@ -3,8 +3,8 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react';
 import { useRouter } from 'next/navigation'
 // import { Helmet } from 'react-helmet';
-import Button from '@/components/ui/ButtonAlt';
-import Input from '@/components/ui/NewInput';
+import Button from '@/components/ui/alt/ButtonAlt';
+import Input from '@/components/ui/new/NewInput';
 import Icon from '@/components/AppIcon';
 
 interface FormData {
@@ -379,7 +379,7 @@ const VendorAuth: React.FC = () => {
 					<div className="text-center mt-6">
 						<button
 							type="button"
-							onClick={() => router.push('/home-discovery')}
+							onClick={() => router.push('/')}
 							className="text-text-muted hover:text-text-secondary flex items-center justify-center mx-auto"
 						>
 							<Icon name="ArrowLeft" size={16} className="mr-1" />
