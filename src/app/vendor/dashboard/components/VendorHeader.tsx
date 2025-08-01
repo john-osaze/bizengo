@@ -36,7 +36,7 @@ const VendorHeader: React.FC<VendorHeaderProps> = ({ vendorData, onLogout }) => 
 
   return (
     <header className="bg-card border-b border-border sticky top-0 z-header">
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="max-w-[85vw] mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Business Name */}
           <div className="flex items-center space-x-4">

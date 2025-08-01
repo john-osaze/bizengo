@@ -74,7 +74,7 @@ interface VendorData {
 	firstName: string;
 	lastName: string;
 	email: string;
-	businessName: string;
+	businessName?: string;
 	isVerified: boolean;
 }
 
@@ -90,6 +90,11 @@ interface VendorData {
 // 	createdAt: string;
 // 	views: number;
 // };
+
+interface VendorData {
+	businessName?: string;
+	[key: string]: any;
+}
 
 const ProductManagement: React.FC = () => {
 	const router = useRouter();
@@ -372,12 +377,13 @@ const ProductManagement: React.FC = () => {
 		<>
 			<VendorHeader
 				onLogout={handleLogout}
+				vendorData={vendorData || { businessName: 'Demo Business' }}
 			/>
 
 			<RoleProvider>
 				<RoleContextNavigation>
 					<div className="min-h-screen bg-background">
-						<div className="max-w-7xl mx-auto p-6">
+						<div className="max-w-[85vw] mx-auto p-6">
 							{/* Header */}
 							<div className="flex items-center justify-between mb-8">
 								<div>

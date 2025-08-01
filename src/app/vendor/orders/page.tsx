@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRole } from '@/components/ui/RoleContextNavigation';
+import { useRouter } from 'next/navigation';
+import VendorHeader from '../dashboard/components/VendorHeader';
 import OrderFilters from './components/OrderFilters';
 import OrderStatistics from './components/OrderStatistics';
 import BulkActionsToolbar from './components/BulkActionsToolbar';
@@ -36,13 +38,13 @@ interface ProductOrderItem {
 // }
 
 interface ShippingAddress {
-  name: string;
-  street: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  country: string;
-  phone?: string;
+	name: string;
+	street: string;
+	city: string;
+	state: string;
+	zipCode: string;
+	country: string;
+	phone?: string;
 }
 
 type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
@@ -108,14 +110,21 @@ interface Activity {
 
 type ExportFormat = 'csv' | 'xlsx' | 'pdf';
 
+interface VendorData {
+	businessName?: string;
+	[key: string]: any;
+}
+
 const OrderManagement: React.FC = () => {
-	const { userRole } = useRole();
-	const [orders, setOrders] = useState < ProductOrder[] > ([]);
-	const [filteredOrders, setFilteredOrders] = useState < ProductOrder[] > ([]);
-	const [selectedOrders, setSelectedOrders] = useState < string[] > ([]);
-	const [selectedOrder, setSelectedOrder] = useState < ProductOrder | null > (null);
-	const [isModalOpen, setIsModalOpen] = useState < boolean > (false);
-	const [filters, setFilters] = useState < Filters > ({
+	// const { userRole } = useRole();
+	const router = useRouter();
+	const [vendorData, setVendorData] = useState<VendorData | null>(null);
+	const [orders, setOrders] = useState<ProductOrder[]>([]);
+	const [filteredOrders, setFilteredOrders] = useState<ProductOrder[]>([]);
+	const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
+	const [selectedOrder, setSelectedOrder] = useState<ProductOrder | null>(null);
+	const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+	const [filters, setFilters] = useState<Filters>({
 		search: '',
 		status: 'all',
 		sort: 'newest',
@@ -500,20 +509,31 @@ const OrderManagement: React.FC = () => {
 		// Implementation would handle quick actions
 	};
 
-	if (userRole !== 'vendor') {
-		return (
-			<div className="min-h-screen bg-background flex items-center justify-center">
-				<div className="text-center">
-					<h1 className="text-2xl font-bold text-foreground mb-2">Access Denied</h1>
-					<p className="text-muted-foreground">This page is only accessible to vendors.</p>
-				</div>
-			</div>
-		);
-	}
+	const handleLogout = (): void => {
+		localStorage.removeItem('vendorAuth');
+		localStorage.removeItem('isVendorLoggedIn');
+		router.push('../vendor-auth');
+	};
+
+	// if (userRole !== 'vendor') {
+	// 	return (
+	// 		<div className="min-h-screen bg-background flex items-center justify-center">
+	// 			<div className="text-center">
+	// 				<h1 className="text-2xl font-bold text-foreground mb-2">Access Denied</h1>
+	// 				<p className="text-muted-foreground">This page is only accessible to vendors.</p>
+	// 			</div>
+	// 		</div>
+	// 	);
+	// }
 
 	return (
 		<div className="min-h-screen bg-background">
-			<div className="max-w-7xl mx-auto p-6">
+			<VendorHeader
+				onLogout={handleLogout}
+				vendorData={vendorData || { businessName: 'Demo Business' }}
+			/>
+
+			<div className="max-w-[85vw] mx-auto p-6">
 				{/* Header */}
 				<div className="mb-8">
 					<h1 className="text-3xl font-bold text-foreground mb-2">Order Management</h1>

@@ -2,10 +2,10 @@
 
 import React, { useState, ChangeEvent, FormEvent } from 'react';
 import { useRouter } from 'next/navigation'
-// import { Helmet } from 'react-helmet';
 import Button from '@/components/ui/alt/ButtonAlt';
 import Input from '@/components/ui/new/NewInput';
 import Icon from '@/components/AppIcon';
+import Head from 'next/head';
 
 interface FormData {
 	email: string;
@@ -181,10 +181,10 @@ const VendorAuth: React.FC = () => {
 
 	return (
 		<>
-			{/* <Helmet>
-        <title>{isLogin ? 'Vendor Login' : 'Vendor Registration'} - HyperLocal Discovery</title>
-        <meta name="description" content={isLogin ? 'Login to your vendor account' : 'Create your vendor account and start selling online'} />
-      </Helmet> */}
+			<Head>
+				<title>{isLogin ? 'Vendor Login' : 'Vendor Registration'} - Bizengo</title>
+				<meta name="description" content={isLogin ? 'Login to your vendor account' : 'Create your vendor account and start selling online'} />
+			</Head>
 
 			<div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 flex items-center justify-center p-4">
 				<div className="max-w-md w-full">

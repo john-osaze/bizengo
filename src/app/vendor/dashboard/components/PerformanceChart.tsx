@@ -11,7 +11,12 @@ import {
   Bar,
 } from 'recharts';
 import Icon from '@/components/AppIcon';
-import { PerformanceData } from '../PerformanceDataType';
+
+interface PerformanceData {
+  name: string;
+  sales: number;
+  orders: number;
+}
 
 type ChartType = 'sales' | 'orders';
 type ViewType = 'line' | 'bar';

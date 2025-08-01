@@ -7,9 +7,10 @@ import VendorHeader from '../dashboard/components/VendorHeader';
 import StorefrontCustomization from './components/StorefrontCustomization';
 import StorefrontPreview from './components/StorefrontPreview';
 import StorefrontSettings from './components/StorefrontSettings';
-import PublicStorefront from './components/PublicStorefront';
+// import PublicStorefront from './components/PublicStorefront';
 import Button from '@/components/ui/alt/ButtonAlt';
 import Icon from '@/components/AppIcon';
+import MarketplaceBrowse from './marketplace-browse';
 
 interface StorefrontTheme {
 	primaryColor: string;
@@ -84,13 +85,13 @@ interface VendorData {
 	[key: string]: any;
 }
 
-type TabId = 'customize' | 'preview' | 'settings' | 'public';
+type TabId = 'public' | 'preview' | 'customize' | 'settings';
 
 const VendorStorefront: React.FC = () => {
 	const router = useRouter();
 	const [vendorData, setVendorData] = useState<VendorData | null>(null);
 	const [storefrontData, setStorefrontData] = useState<StorefrontData | null>(null);
-	const [activeTab, setActiveTab] = useState<TabId>('customize');
+	const [activeTab, setActiveTab] = useState<TabId>('public');
 	const [loading, setLoading] = useState<boolean>(true);
 	const [saving, setSaving] = useState<boolean>(false);
 
@@ -224,7 +225,7 @@ const VendorStorefront: React.FC = () => {
 	const handleLogout = () => {
 		localStorage.removeItem('vendorAuth');
 		localStorage.removeItem('isVendorLoggedIn');
-		router.push('/vendor-auth');
+		router.push('../vendor-auth');
 	};
 
 	const getStorefrontUrl = () => {
@@ -233,16 +234,22 @@ const VendorStorefront: React.FC = () => {
 
 	const tabs: { id: TabId; label: string; icon: string; description: string }[] = [
 		{
-			id: 'customize',
-			label: 'Customize',
-			icon: 'Palette',
-			description: 'Design your storefront'
+			id: 'public',
+			label: 'Public View',
+			icon: 'ExternalLink',
+			description: 'Customer view'
 		},
 		{
 			id: 'preview',
 			label: 'Preview',
 			icon: 'Eye',
 			description: 'See how it looks'
+		}, 
+		{
+			id: 'customize',
+			label: 'Customize',
+			icon: 'Palette',
+			description: 'Design your storefront'
 		},
 		{
 			id: 'settings',
@@ -250,12 +257,6 @@ const VendorStorefront: React.FC = () => {
 			icon: 'Settings',
 			description: 'Configure options'
 		},
-		{
-			id: 'public',
-			label: 'Public View',
-			icon: 'ExternalLink',
-			description: 'Customer view'
-		}
 	];
 
 	if (loading) {
@@ -282,7 +283,7 @@ const VendorStorefront: React.FC = () => {
 			<div className="min-h-screen bg-background">
 				<VendorHeader vendorData={vendorData ?? undefined} onLogout={handleLogout} />
 
-				<main className="max-w-7xl mx-auto px-4 py-6">
+				<main className="max-w-[85vw] mx-auto px-4 py-6">
 					{/* Page Header */}
 					<div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
 						<div>
@@ -323,7 +324,7 @@ const VendorStorefront: React.FC = () => {
 					{/* Status Banner */}
 					{storefrontData && (
 						<div className={`p-4 rounded-lg mb-6 ${storefrontData.isPublished
-								? 'bg-success-50 border border-success-200' : 'bg-warning-50 border border-warning-200'
+							? 'bg-success-50 border border-success-200' : 'bg-warning-50 border border-warning-200'
 							}`}>
 							<div className="flex items-center justify-between">
 								<div className="flex items-center space-x-3">
@@ -361,7 +362,7 @@ const VendorStorefront: React.FC = () => {
 								key={tab.id}
 								onClick={() => setActiveTab(tab.id)}
 								className={`flex items-center space-x-2 px-4 py-3 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${activeTab === tab.id
-										? 'border-primary text-primary' : 'border-transparent text-text-muted hover:text-text-secondary hover:border-border'
+									? 'border-primary text-primary' : 'border-transparent text-text-muted hover:text-text-secondary hover:border-border'
 									}`}
 							>
 								<Icon name={tab.icon} size={16} />
@@ -372,18 +373,19 @@ const VendorStorefront: React.FC = () => {
 
 					{/* Tab Content */}
 					<div>
-						{activeTab === 'customize' && (
-							<StorefrontCustomization
-								storefrontData={storefrontData}
-								onSave={handleSaveStorefront}
-								saving={saving}
-							/>
+						{activeTab === 'public' && (
+							// <PublicStorefront
+							// 	storefrontData={storefrontData}
+							// 	isPreview={true}
+							// />
+							<MarketplaceBrowse />
 						)}
 
 						{activeTab === 'preview' && (
-							<StorefrontPreview
-								storefrontData={storefrontData}
-							/>
+							// <StorefrontPreview
+							// 	storefrontData={storefrontData}
+							// />
+							<MarketplaceBrowse />
 						)}
 
 						{activeTab === 'settings' && (
@@ -394,10 +396,11 @@ const VendorStorefront: React.FC = () => {
 							/>
 						)}
 
-						{activeTab === 'public' && (
-							<PublicStorefront
+						{activeTab === 'customize' && (
+							<StorefrontCustomization
 								storefrontData={storefrontData}
-								isPreview={true}
+								onSave={handleSaveStorefront}
+								saving={saving}
 							/>
 						)}
 					</div>

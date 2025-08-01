@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation'
-// import { Helmet } from 'react-helmet';
+import Head from 'next/head';
 import VendorHeader from './components/VendorHeader';
 import DashboardStats from './components/DashboardStats';
 import QuickActions from './components/QuickActions';
@@ -11,8 +11,11 @@ import ProductOverview from './components/ProductOverview';
 import PerformanceChart from './components/PerformanceChart';
 import NotificationPanel from './components/NotificationPanel';
 
-// Remove local PerformanceData interface and import from types.ts
-import { PerformanceData } from './PerformanceDataType';
+interface PerformanceData {
+  name: string;
+  sales: number;
+  orders: number;
+}
 
 interface VendorData {
   firstName: string;
@@ -242,10 +245,10 @@ const VendorDashboard: React.FC = () => {
 
   return (
     <>
-      {/* <Helmet>
+      <Head>
         <title>Vendor Dashboard - {vendorData?.businessName || 'Business'}</title>
         <meta name="description" content="Manage your business, products, and orders" />
-      </Helmet> */}
+      </Head>
 
       <div className="min-h-screen bg-background">
         {/* Header */}
@@ -255,7 +258,7 @@ const VendorDashboard: React.FC = () => {
         />
 
         {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-4 py-6">
+        <main className="max-w-[85vw] mx-auto px-4 py-6">
           {/* Welcome Section */}
           <div className="mb-8">
             <h1 className="font-heading font-bold text-2xl text-text-primary mb-2">
