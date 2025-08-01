@@ -216,6 +216,10 @@ const VendorDashboard: React.FC = () => {
     router.push('../vendor-auth');
   };
 
+  const handleRefresh = () => {
+    router.refresh();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -233,7 +237,7 @@ const VendorDashboard: React.FC = () => {
         <div className="text-center">
           <p className="text-text-primary text-lg mb-4">Failed to load dashboard</p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => handleRefresh}
             className="text-primary hover:underline"
           >
             Try Again

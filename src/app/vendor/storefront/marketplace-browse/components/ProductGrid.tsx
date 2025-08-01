@@ -1,7 +1,14 @@
 import React from 'react';
 import ProductCard from './ProductCard';
 import Icon from '@/components/AppIcon';
+import { useRouter } from 'next/navigation';
 
+
+
+ const handleRefresh = () => {
+	const router = useRouter();
+    router.refresh();
+  };
 // --- START OF TYPESCRIPT CONVERSION ---
 
 // Define the shape of a single product for this component
@@ -107,7 +114,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
 				We couldn't find any products matching your search criteria. Try adjusting your filters or search terms.
 			</p>
 			<button
-				onClick={() => window.location.reload()}
+				onClick={() => handleRefresh}
 				className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors duration-200"
 			>
 				<Icon name="RotateCcw" size={16} />
