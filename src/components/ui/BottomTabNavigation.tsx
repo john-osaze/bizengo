@@ -20,28 +20,28 @@ const BottomTabNavigation: React.FC = () => {
     const navigationItems: NavigationItem[] = [
         {
             label: 'Home',
-            path: '/tools/find-products/',
+            path: '/',
             icon: 'Home',
             activeIcon: 'Home',
             tooltip: 'Discover nearby products'
         },
         {
             label: 'Map',
-            path: '/tools/find-products/map-view',
+            path: '/map-view',
             icon: 'Map',
             activeIcon: 'Map',
             tooltip: 'Geographic product exploration'
         },
         {
             label: 'Search',
-            path: '/tools/find-products/search-results',
+            path: '/search-results',
             icon: 'Search',
             activeIcon: 'Search',
             tooltip: 'Query-driven discovery'
         },
         {
             label: 'Profile',
-            path: '/tools/find-products/user-profile',
+            path: '/user-profile',
             icon: 'User',
             activeIcon: 'User',
             tooltip: 'Account management'

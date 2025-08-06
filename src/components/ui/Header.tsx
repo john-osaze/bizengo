@@ -59,7 +59,7 @@ const Header: React.FC = () => {
     const handleSearch = (e: React.FormEvent<HTMLFormElement>): void => {
         e.preventDefault();
         if (searchQuery.trim()) {
-            router.push(`/tools/find-products/search-results?q=${encodeURIComponent(searchQuery.trim())}`); // Use router.push
+            router.push(`/search-results?q=${encodeURIComponent(searchQuery.trim())}`); // Use router.push
         }
     };
 
@@ -67,7 +67,7 @@ const Header: React.FC = () => {
         if (window.history.length > 1) {
             router.back(); // Use router.back()
         } else {
-            router.push('/tools/find-products/'); // Use router.push
+            router.push('/'); // Use router.push
         }
     };
 
@@ -93,7 +93,7 @@ const Header: React.FC = () => {
                             <Icon name="ArrowLeft" size={20} className="text-text-primary" />
                         </button>
                     ) : (
-                        <Link href="/tools/find-products/" className="block"> {/* Add 'block' if you want the link to occupy the full width of its container */}
+                        <Link href="/" className="block"> {/* Add 'block' if you want the link to occupy the full width of its container */}
                             <div className="flex items-center space-x-3">
                                 <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                                     <Icon name="MapPin" size={18} className="text-white" />
@@ -144,7 +144,7 @@ const Header: React.FC = () => {
                 <div className="flex items-center space-x-2">
                     {pathname === '/search-results' && (
                         <button
-                            onClick={() => router.push('/tools/find-products/search-results?view=filter')} // Use router.push
+                            onClick={() => router.push('/search-results?view=filter')} // Use router.push
                             className="p-2 rounded-lg hover:bg-surface-secondary transition-colors duration-200"
                             aria-label="Open filters"
                         >
@@ -152,9 +152,9 @@ const Header: React.FC = () => {
                         </button>
                     )}
 
-                    {pathname === '/tools/find-products/map-view' && (
+                    {pathname === '/map-view' && (
                         <button
-                            onClick={() => router.push('/tools/find-products/map-view?view=list')} // Use router.push
+                            onClick={() => router.push('/map-view?view=list')} // Use router.push
                             className="p-2 rounded-lg hover:bg-surface-secondary transition-colors duration-200"
                             aria-label="Toggle view"
                         >
@@ -174,7 +174,7 @@ const Header: React.FC = () => {
                                 Create a Storefront
                             </Link>
                             <button
-                                onClick={() => router.push('/tools/find-products/user-profile')}
+                                onClick={() => router.push('/user-profile')}
                                 className="p-2 rounded-lg hover:bg-surface-secondary transition-colors duration-200 relative"
                                 aria-label="User profile"
                             >
@@ -204,7 +204,7 @@ const Header: React.FC = () => {
                                         Create a Storefront
                                     </Link>
                                     <button
-                                        onClick={() => handleNavigation('/tools/find-products/user-profile')}
+                                        onClick={() => handleNavigation('/user-profile')}
                                         className=" w-full text-left p-3 text-sm font-medium text-text-primary hover:bg-surface-secondary transition-colors duration-200 flex items-center gap-2"
                                         aria-label="User profile option"
                                     >

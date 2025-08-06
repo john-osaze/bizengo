@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 // import { useRole } from '@/components/ui/RoleContextNavigation';
 import { useRouter } from 'next/navigation';
-import VendorHeader from '../dashboard/components/VendorHeader';
 import OrderFilters from './components/OrderFilters';
 import OrderStatistics from './components/OrderStatistics';
 import BulkActionsToolbar from './components/BulkActionsToolbar';
@@ -509,12 +508,6 @@ const OrderManagement: React.FC = () => {
 		// Implementation would handle quick actions
 	};
 
-	const handleLogout = (): void => {
-		localStorage.removeItem('vendorAuth');
-		localStorage.removeItem('isVendorLoggedIn');
-		router.push('../vendor-auth');
-	};
-
 	// if (userRole !== 'vendor') {
 	// 	return (
 	// 		<div className="min-h-screen bg-background flex items-center justify-center">
@@ -528,11 +521,6 @@ const OrderManagement: React.FC = () => {
 
 	return (
 		<div className="min-h-screen bg-background">
-			<VendorHeader
-				onLogout={handleLogout}
-				vendorData={vendorData || { businessName: 'Demo Business' }}
-			/>
-
 			<div className="max-w-[85vw] mx-auto p-6">
 				{/* Header */}
 				<div className="mb-8">

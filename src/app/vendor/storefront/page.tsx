@@ -3,11 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation'
 import Head from 'next/head'
-import VendorHeader from '../dashboard/components/VendorHeader';
 import StorefrontCustomization from './components/StorefrontCustomization';
-import StorefrontPreview from './components/StorefrontPreview';
 import StorefrontSettings from './components/StorefrontSettings';
-// import PublicStorefront from './components/PublicStorefront';
 import Button from '@/components/ui/alt/ButtonAlt';
 import Icon from '@/components/AppIcon';
 import MarketplaceBrowse from './marketplace-browse';
@@ -156,7 +153,7 @@ const VendorStorefront: React.FC = () => {
 		// Check if vendor is authenticated
 		const isLoggedIn = localStorage.getItem('isVendorLoggedIn');
 		if (!isLoggedIn) {
-			router.push('/vendor-auth');
+			router.push('../auth');
 			return;
 		}
 
@@ -222,12 +219,6 @@ const VendorStorefront: React.FC = () => {
 		}
 	};
 
-	const handleLogout = () => {
-		localStorage.removeItem('vendorAuth');
-		localStorage.removeItem('isVendorLoggedIn');
-		router.push('../vendor-auth');
-	};
-
 	const getStorefrontUrl = () => {
 		return `${window.location.origin}/storefront/${storefrontData?.slug}`;
 	};
@@ -262,7 +253,6 @@ const VendorStorefront: React.FC = () => {
 	if (loading) {
 		return (
 			<div className="min-h-screen bg-background">
-				<VendorHeader vendorData={vendorData ?? undefined} onLogout={handleLogout} />
 				<div className="flex items-center justify-center py-20">
 					<div className="text-center">
 						<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
@@ -281,8 +271,6 @@ const VendorStorefront: React.FC = () => {
 			</Head>
 
 			<div className="min-h-screen bg-background">
-				<VendorHeader vendorData={vendorData ?? undefined} onLogout={handleLogout} />
-
 				<main className="max-w-[85vw] mx-auto px-4 py-6">
 					{/* Page Header */}
 					<div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">

@@ -367,19 +367,8 @@ const ProductManagement: React.FC = () => {
 	const outOfStockCount = products.filter(p => p.stock === 0).length;
 	const activeProductsCount = products.filter(p => p.status === 'active').length;
 
-	const handleLogout = (): void => {
-		localStorage.removeItem('vendorAuth');
-		localStorage.removeItem('isVendorLoggedIn');
-		router.push('../vendor-auth');
-	};
-
 	return (
 		<>
-			<VendorHeader
-				onLogout={handleLogout}
-				vendorData={vendorData || { businessName: 'Demo Business' }}
-			/>
-
 			<RoleProvider>
 				<RoleContextNavigation>
 					<div className="min-h-screen bg-background">

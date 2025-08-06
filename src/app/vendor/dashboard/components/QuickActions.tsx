@@ -24,7 +24,7 @@ const QuickActions: React.FC = () => {
       icon: 'Plus',
       iconColor: 'text-primary',
       iconBg: 'bg-primary-50',
-      action: () => router.push('../products/add')
+      action: () => router.push('../products/')
     },
     {
       title: 'View Orders',
