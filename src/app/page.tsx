@@ -9,17 +9,12 @@ import PopularInArea from './home/PopularInArea';
 import QuickActions from './home/QuickActions';
 import LocationIndicator from './home/LocationIndicator';
 import LandingPage from './home/LandingPage';
+import Homepage from './home/Homepage';
 
 // interface QuickFilter {
 // 	label: string;
 // 	icon: LucideIconName;
 // }
-
-interface ProductCategory {
-	name: string;
-	icon: LucideIconName;
-	color: string;
-}
 
 // export const metadata = {
 // 	title: "Bizengo",
@@ -71,16 +66,10 @@ export default function ProductFinder() {
 				)}
 
 				<div className="w-full">
-					<LandingPage />
-
+					{/* <LandingPage /> */}
+					<Homepage />
+					
 					<div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
-						<LocationIndicator
-							location={currentLocation}
-							onLocationChange={handleLocationChange}
-						/>
-
-						<QuickActions />
-
 						<section className="mb-8">
 							<div className="flex items-center justify-between mb-4">
 								<h2 className="text-xl font-heading font-semibold text-text-primary">Nearby Deals</h2>
@@ -118,32 +107,6 @@ export default function ProductFinder() {
 								</button>
 							</div>
 							<PopularInArea />
-						</section>
-
-						<section className="mb-8">
-							<h2 className="text-xl font-heading font-semibold text-text-primary mb-4">Browse Categories</h2>
-							<div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-
-								{([
-									{ name: "Electronics", icon: "Smartphone", color: "bg-blue-50 text-blue-600" },
-									{ name: "Clothing", icon: "Shirt", color: "bg-purple-50 text-purple-600" },
-									{ name: "Home & Garden", icon: "Home", color: "bg-green-50 text-green-600" },
-									{ name: "Sports", icon: "Dumbbell", color: "bg-orange-50 text-orange-600" },
-									{ name: "Books", icon: "Book", color: "bg-indigo-50 text-indigo-600" },
-									{ name: "Automotive", icon: "Car", color: "bg-red-50 text-red-600" }
-								] as ProductCategory[]).map((category, index) => (
-									<button
-										key={index}
-										onClick={() => router.push(`/search-results?category=${category.name.toLowerCase()}`)}
-										className="flex flex-col items-center p-4 rounded-lg border border-border hover:shadow-elevation-1 transition-all duration-200"
-									>
-										<div className={`w-12 h-12 rounded-lg ${category.color} flex items-center justify-center mb-2`}>
-											<Icon name={category.icon} size={24} />
-										</div>
-										<span className="text-sm font-medium text-text-primary text-center">{category.name}</span>
-									</button>
-								))}
-							</div>
 						</section>
 					</div>
 				</div>

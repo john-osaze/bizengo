@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, MapPin, ShoppingBag, Users, Package } from 'lucide-react';
+import { Search, MapPin, ShoppingBag, Users, Package, Star, Filter, ChevronDown } from 'lucide-react';
 
 interface Storefront {
     id: number;
@@ -96,33 +96,68 @@ const LandingPage: React.FC = () => {
 
                     {/* Hero Illustration */}
                     <div className="relative">
-                        <div className="w-80 h-80 relative">
-                            {/* Location Pin */}
-                            <div className="absolute top-8 right-12 bg-orange-500 rounded-full p-3 shadow-lg">
-                                <ShoppingBag className="w-6 h-6 text-white" />
+                        <div className="w-96 h-80 relative">
+                            {/* Background City Silhouette */}
+                            <div className="absolute inset-0 opacity-30">
+                                <div className="absolute bottom-0 left-0 w-8 h-20 bg-blue-700"></div>
+                                <div className="absolute bottom-0 left-10 w-12 h-32 bg-blue-700"></div>
+                                <div className="absolute bottom-0 left-24 w-10 h-24 bg-blue-700"></div>
+                                <div className="absolute bottom-0 right-20 w-14 h-28 bg-blue-700"></div>
+                                <div className="absolute bottom-0 right-4 w-8 h-16 bg-blue-700"></div>
+                            </div>
+
+                            {/* Delivery Person */}
+                            <div className="absolute bottom-16 left-8 w-16 h-20">
+                                <div className="w-8 h-10 bg-orange-400 rounded-t-full mx-auto mb-2"></div>
+                                <div className="w-12 h-8 bg-orange-400 rounded mx-auto"></div>
+                            </div>
+
+                            {/* Rating Badge */}
+                            <div className="absolute top-8 left-16 bg-white rounded-lg p-2 shadow-lg flex items-center space-x-1">
+                                <Star className="w-4 h-4 text-orange-400 fill-current" />
+                                <Star className="w-4 h-4 text-orange-400 fill-current" />
+                                <Star className="w-4 h-4 text-orange-400 fill-current" />
                             </div>
 
                             {/* Store Front */}
-                            <div className="absolute bottom-16 right-8 bg-white rounded-lg p-4 shadow-xl w-32 h-24">
-                                <div className="bg-orange-500 w-full h-2 rounded-t-lg mb-2"></div>
-                                <div className="flex space-x-1">
-                                    <div className="bg-blue-200 w-8 h-8 rounded"></div>
-                                    <div className="bg-orange-200 w-8 h-8 rounded"></div>
+                            <div className="absolute bottom-12 right-16 bg-white rounded-lg shadow-xl w-24 h-16 overflow-hidden">
+                                <div className="bg-orange-500 w-full h-3"></div>
+                                <div className="p-1">
+                                    <div className="flex space-x-1">
+                                        <div className="bg-blue-200 w-4 h-6 rounded"></div>
+                                        <div className="bg-orange-200 w-4 h-6 rounded"></div>
+                                        <div className="bg-green-200 w-4 h-6 rounded"></div>
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* People */}
-                            <div className="absolute bottom-8 left-8">
-                                <div className="flex space-x-4">
-                                    <div className="w-12 h-16 bg-orange-400 rounded-t-full"></div>
-                                    <div className="w-12 h-16 bg-blue-600 rounded-t-full"></div>
+                            {/* Rating Pop-up */}
+                            <div className="absolute top-16 right-8 bg-white rounded-lg p-2 shadow-lg">
+                                <div className="flex">
+                                    <Star className="w-3 h-3 text-orange-400 fill-current" />
+                                    <Star className="w-3 h-3 text-orange-400 fill-current" />
                                 </div>
                             </div>
 
-                            {/* Floating Elements */}
-                            <div className="absolute top-4 left-4 w-4 h-4 bg-orange-400 rounded"></div>
-                            <div className="absolute top-12 right-4 w-3 h-3 bg-orange-300 rounded"></div>
-                            <div className="absolute bottom-4 right-20 w-6 h-6 bg-orange-500 rounded"></div>
+                            {/* Chat Bubble */}
+                            <div className="absolute top-4 right-4 bg-white rounded-lg p-2 shadow-lg">
+                                <MapPin className="w-4 h-4 text-orange-500" />
+                            </div>
+
+                            {/* Another Person */}
+                            <div className="absolute bottom-16 right-8 w-12 h-16">
+                                <div className="w-6 h-8 bg-blue-600 rounded-t-full mx-auto mb-1"></div>
+                                <div className="w-8 h-6 bg-blue-600 rounded mx-auto"></div>
+                            </div>
+
+                            {/* Delivery Vehicle */}
+                            <div className="absolute bottom-8 left-24">
+                                <div className="w-8 h-4 bg-orange-500 rounded"></div>
+                                <div className="flex space-x-2 mt-1">
+                                    <div className="w-2 h-2 bg-gray-800 rounded-full"></div>
+                                    <div className="w-2 h-2 bg-gray-800 rounded-full"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -172,37 +207,42 @@ const LandingPage: React.FC = () => {
                         </div>
 
                         <div className="flex items-center space-x-2">
-                            <div className="flex items-center">
-                                <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                                <span className="text-gray-700">Open Now</span>
-                            </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={openOnly}
-                                    onChange={(e) => setOpenOnly(e.target.checked)}
-                                    className="sr-only"
-                                />
-                                <div className={`w-10 h-6 rounded-full transition-colors ${openOnly ? 'bg-orange-500' : 'bg-gray-300'}`}>
-                                    <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${openOnly ? 'translate-x-5' : 'translate-x-1'} mt-1`}></div>
-                                </div>
-                            </label>
+                            <Filter className="w-4 h-4 text-gray-600" />
+                            <span className="text-gray-700 text-sm">(Sort)</span>
                         </div>
 
                         <div className="flex items-center space-x-2">
-                            <span className="text-gray-700">Verified Only</span>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={verifiedOnly}
-                                    onChange={(e) => setVerifiedOnly(e.target.checked)}
-                                    className="sr-only"
-                                />
-                                <div className={`w-10 h-6 rounded-full transition-colors ${verifiedOnly ? 'bg-orange-500' : 'bg-gray-300'}`}>
-                                    <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${verifiedOnly ? 'translate-x-5' : 'translate-x-1'} mt-1`}></div>
-                                </div>
-                            </label>
+                            <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                                <span className="text-white text-xs">✓</span>
+                            </div>
+                            <label className="text-gray-700 font-medium text-sm">Spintort</label>
+                            <div className="relative">
+                                <select className="appearance-none border border-gray-300 rounded px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                    <option>All</option>
+                                </select>
+                                <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            </div>
                         </div>
+
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={openOnly}
+                                onChange={(e) => setOpenOnly(e.target.checked)}
+                                className="w-4 h-4 text-orange-500 rounded focus:ring-orange-500"
+                            />
+                            <span className="text-gray-700 text-sm">Open Now</span>
+                        </label>
+
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={verifiedOnly}
+                                onChange={(e) => setVerifiedOnly(e.target.checked)}
+                                className="w-4 h-4 text-orange-500 rounded focus:ring-orange-500"
+                            />
+                            <span className="text-gray-700 text-sm">Verified Only</span>
+                        </label>
                     </div>
 
                     {/* Storefront Grid */}

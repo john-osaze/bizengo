@@ -88,7 +88,7 @@ const RecentOrders: React.FC<RecentOrdersProps> = ({ orders }) => {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => router.push('/vendor-orders')}
+          onClick={() => router.push('../orders')}
         >
           View All
         </Button>
@@ -99,7 +99,7 @@ const RecentOrders: React.FC<RecentOrdersProps> = ({ orders }) => {
           <div 
             key={order.id}
             className="flex items-center justify-between p-4 border border-border rounded-lg hover:border-primary transition-colors cursor-pointer"
-            onClick={() => router.push(`/vendor-orders/${order.id}`)}
+            onClick={() => router.push(`../orders/`)}
           >
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-primary-50 rounded-lg flex items-center justify-center">

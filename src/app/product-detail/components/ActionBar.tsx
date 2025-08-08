@@ -26,7 +26,7 @@ const ActionBar = ({
     isWishlisted
 }: ActionBarProps) => {
     return (
-        <div className="fixed bottom-16 left-0 right-0 z-100 bg-surface border-t border-border p-4 safe-area-inset-bottom">
+        <div className="fixed bottom-16 left-0 right-0 z-100 bg-white border-t border-border p-4 safe-area-inset-bottom">
             <div className="flex items-center space-x-3">
                 {/* Wishlist Button */}
                 <button

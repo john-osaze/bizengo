@@ -397,7 +397,7 @@ const SearchResults = () => {
                     )}
 
                     {/* Quick Filters - Mobile */}
-                    <div className="lg:hidden px-4 py-3 border-b border-border bg-surface">
+                    <div className="lg:hidden px-4 py-3 border-b border-border bg-white">
                         <QuickFilters onApplyFilter={handleQuickFilter} />
                     </div>
 

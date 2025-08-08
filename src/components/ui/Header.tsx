@@ -106,7 +106,7 @@ const Header: React.FC = () => {
                     )}
                 </div>
 
-                {/* Center Section - Search */}
+                {/* Center Section - Search
                 {showSearch && (
                     <div className="flex-1 max-w-md mx-4">
                         <form onSubmit={handleSearch} className="relative">
@@ -138,7 +138,7 @@ const Header: React.FC = () => {
                             </div>
                         </form>
                     </div>
-                )}
+                )} */}
 
                 {/* Right Section */}
                 <div className="flex items-center space-x-2">

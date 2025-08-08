@@ -122,7 +122,7 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({ isOpen, onClose }) => {
             <div className={`md:hidden fixed inset-0 z-300 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
                 }`}>
                 <div className="absolute inset-0 bg-black bg-opacity-50" onClick={onClose} />
-                <div className={`absolute left-0 top-0 bottom-0 w-80 bg-surface shadow-elevation-3 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'
+                <div className={`absolute left-0 top-0 bottom-0 w-80 bg-white shadow-elevation-3 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'
                     }`}>
                     <div className="flex flex-col h-full">
                         {/* Header */}

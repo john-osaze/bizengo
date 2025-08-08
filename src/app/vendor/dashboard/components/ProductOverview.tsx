@@ -35,7 +35,7 @@ const ProductOverview: React.FC<ProductOverviewProps> = ({ products }) => {
           <Button
             variant="primary"
             size="sm"
-            onClick={() => router.push('/vendor-products/add')}
+            onClick={() => router.push('../products')}
           >
             <Icon name="Plus" size={16} className="mr-2" />
             Add Product
@@ -54,7 +54,7 @@ const ProductOverview: React.FC<ProductOverviewProps> = ({ products }) => {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => router.push('/vendor-products')}
+          onClick={() => router.push('../products')}
         >
           View All
         </Button>
@@ -65,7 +65,7 @@ const ProductOverview: React.FC<ProductOverviewProps> = ({ products }) => {
           <div 
             key={product.id}
             className="flex items-center space-x-4 p-3 rounded-lg border border-border hover:border-primary transition-colors cursor-pointer"
-            onClick={() => router.push(`/vendor-products/${product.id}`)}
+            onClick={() => router.push(`../products/`)}
           >
             <div className="relative">
               <AppImage
@@ -109,7 +109,7 @@ const ProductOverview: React.FC<ProductOverviewProps> = ({ products }) => {
         <Button
           variant="outline"
           className="w-full"
-          onClick={() => router.push('/vendor-products/add')}
+          onClick={() => router.push('../products')}
         >
           <Icon name="Plus" size={16} className="mr-2" />
           Add New Product
