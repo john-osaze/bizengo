@@ -51,16 +51,17 @@ interface SettingsState {
         twoFactorAuth: boolean;
         emailVerified?: boolean;
         phoneVerified?: boolean;
+        test?: any;
     };
 }
 
-interface SettingsProps {
-    userProfile: UserProfileData;
-}
+// interface SettingsProps {
+//     userProfile: null;
+// }
 
 type SettingSectionKey = keyof SettingsState;
 
-const Settings = ({ userProfile }: SettingsProps) => {
+const Settings = () => {
     const [settings, setSettings] = useState<SettingsState>({
         location: {
             homeAddress: "123 Main St, San Francisco, CA 94102",
