@@ -67,7 +67,7 @@ const MarketplaceBrowse: React.FC = () => {
 	const [isFilterPanelOpen, setIsFilterPanelOpen] = useState<boolean>(false);
 	const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 	const [isQuickViewOpen, setIsQuickViewOpen] = useState<boolean>(false);
-	const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 768);
+	const [isMobile, setIsMobile] = useState<boolean>(true);
 
 	const [filters, setFilters] = useState<Filters>({
 		categories: [],
@@ -211,7 +211,7 @@ const MarketplaceBrowse: React.FC = () => {
 
 		window.addEventListener('resize', handleResize);
 		return () => window.removeEventListener('resize', handleResize);
-	}, [router]);
+	}, []);
 
 	// useEffect(() => {
 	// 	// const searchParams = useSearchParams()
