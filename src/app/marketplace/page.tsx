@@ -10,6 +10,7 @@ import FilterPanel from './components/FilterPanel';
 import FilterChips from './components/FilterChips';
 import SortDropdown from './components/SortDropdown';
 import QuickViewModal from './components/QuickViewModal';
+import { useRouter } from 'next/navigation';
 
 // Type definitions
 interface Product {
@@ -82,6 +83,8 @@ const MarketplaceBrowse: React.FC = () => {
 
 	const [sortBy, setSortBy] = useState<SortOption>('relevance');
 	const [searchQuery, setSearchQuery] = useState<string>('');
+
+	const router = useRouter();
 
 	// Mock product data
 	const mockProducts: Product[] = [
@@ -208,7 +211,7 @@ const MarketplaceBrowse: React.FC = () => {
 
 		window.addEventListener('resize', handleResize);
 		return () => window.removeEventListener('resize', handleResize);
-	}, []);
+	}, [router]);
 
 	// useEffect(() => {
 	// 	// const searchParams = useSearchParams()
