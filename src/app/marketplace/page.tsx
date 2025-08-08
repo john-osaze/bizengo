@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
+// import { useSearchParams } from 'next/navigation';
 import RoleContextNavigation, { RoleProvider } from '@/components/ui/RoleContextNavigation';
 import Icon from '@/components/AppIcon';
 import Button from '@/components/ui/new/Button';
@@ -57,7 +57,7 @@ interface VendorMap {
 }
 
 const MarketplaceBrowse: React.FC = () => {
-	const searchParams = useSearchParams()
+	// const searchParams = useSearchParams()
 	// const [searchParameters, setSearchParameters] = useSearchParams();
 	const [products, setProducts] = useState<Product[]>([]);
 	const [loading, setLoading] = useState<boolean>(true);
@@ -81,7 +81,7 @@ const MarketplaceBrowse: React.FC = () => {
 	});
 
 	const [sortBy, setSortBy] = useState<SortOption>('relevance');
-	const [searchQuery, setSearchQuery] = useState<string>(searchParams.get('search') || '');
+	const [searchQuery, setSearchQuery] = useState<string>('');
 
 	// Mock product data
 	const mockProducts: Product[] = [
@@ -210,14 +210,14 @@ const MarketplaceBrowse: React.FC = () => {
 		return () => window.removeEventListener('resize', handleResize);
 	}, []);
 
-	useEffect(() => {
-		// const searchParams = useSearchParams()
-		// Initialize search query from URL params
-		const urlSearch = searchParams.get('search');
-		if (urlSearch) {
-			setSearchQuery(urlSearch);
-		}
-	}, [searchParams]);
+	// useEffect(() => {
+	// 	// const searchParams = useSearchParams()
+	// 	// Initialize search query from URL params
+	// 	const urlSearch = searchParams.get('search');
+	// 	if (urlSearch) {
+	// 		setSearchQuery(urlSearch);
+	// 	}
+	// }, [searchParams]);
 
 	useEffect(() => {
 		loadProducts(true);
