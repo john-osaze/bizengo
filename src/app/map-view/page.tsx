@@ -472,7 +472,7 @@ const MapView = () => {
                             <div className="absolute top-4 left-4">
                                 <button
                                     onClick={() => setShowFilterDrawer(true)}
-                                    className="flex items-center space-x-2 bg-surface px-4 py-2 rounded-lg shadow-elevation-1 hover:bg-surface-secondary transition-colors duration-200"
+                                    className="flex items-center space-x-2 bg-white px-4 py-2 rounded-lg shadow-elevation-1 hover:bg-surface-secondary transition-colors duration-200"
                                 >
                                     <Icon name="SlidersHorizontal" size={18} className="text-primary" />
                                     <span className="text-sm font-medium text-text-primary">Filters</span>

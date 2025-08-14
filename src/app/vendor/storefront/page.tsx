@@ -7,7 +7,8 @@ import StorefrontCustomization from './components/StorefrontCustomization';
 import StorefrontSettings from './components/StorefrontSettings';
 import Button from '@/components/ui/alt/ButtonAlt';
 import Icon from '@/components/AppIcon';
-import MarketplaceBrowse from './marketplace-browse';
+// import MarketplaceBrowse from './marketplace-browse';
+import BusinessStorefrontView from './business-view';
 
 interface StorefrontTheme {
 	primaryColor: string;
@@ -366,14 +367,14 @@ const VendorStorefront: React.FC = () => {
 							// 	storefrontData={storefrontData}
 							// 	isPreview={true}
 							// />
-							<MarketplaceBrowse />
+							<BusinessStorefrontView />
 						)}
 
 						{activeTab === 'preview' && (
 							// <StorefrontPreview
 							// 	storefrontData={storefrontData}
 							// />
-							<MarketplaceBrowse />
+							<BusinessStorefrontView />
 						)}
 
 						{activeTab === 'settings' && (

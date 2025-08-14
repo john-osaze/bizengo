@@ -1,10 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Icon from '@/components/AppIcon';
 
-// --- START OF TYPESCRIPT CONVERSION ---
-
 // Define the specific values a sort option can have
-type SortOptionValue = 'relevance' | 'price-low' | 'price-high' | 'rating' | 'newest' | 'popular';
+type SortOptionValue = 'relevance' | 'price-low' | 'price-high' | 'rating' | 'newest' | 'popular' | 'category';
 
 // Define the shape of a single sort option
 interface SortOption {
@@ -19,8 +17,6 @@ interface SortDropdownProps {
     onSortChange: (sortValue: SortOptionValue) => void;
 }
 
-// --- END OF TYPESCRIPT CONVERSION ---
-
 const SortDropdown: React.FC<SortDropdownProps> = ({ currentSort, onSortChange }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef < HTMLDivElement | null > (null);
@@ -31,7 +27,8 @@ const SortDropdown: React.FC<SortDropdownProps> = ({ currentSort, onSortChange }
         { value: 'price-high', label: 'Price: High to Low', icon: 'ArrowDown' },
         { value: 'rating', label: 'Customer Rating', icon: 'Star' },
         { value: 'newest', label: 'Newest Arrivals', icon: 'Clock' },
-        { value: 'popular', label: 'Most Popular', icon: 'TrendingUp' }
+        { value: 'popular', label: 'Most Popular', icon: 'TrendingUp' },
+        { value: 'category', label: 'Category', icon: 'Grid' }
     ];
 
     useEffect(() => {
@@ -53,7 +50,7 @@ const SortDropdown: React.FC<SortDropdownProps> = ({ currentSort, onSortChange }
     const currentOption = sortOptions.find(option => option.value === currentSort);
 
     return (
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative z-50" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center space-x-2 px-4 py-2 bg-card border border-border rounded-lg hover:bg-muted transition-colors duration-200 min-w-48"

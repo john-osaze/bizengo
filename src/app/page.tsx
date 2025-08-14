@@ -10,6 +10,7 @@ import QuickActions from './home/QuickActions';
 import LocationIndicator from './home/LocationIndicator';
 import LandingPage from './home/LandingPage';
 import Homepage from './home/Homepage';
+import Footer from './home/Footer';
 
 // interface QuickFilter {
 // 	label: string;
@@ -108,6 +109,8 @@ export default function ProductFinder() {
 							</div>
 							<PopularInArea />
 						</section>
+
+						<Footer />
 					</div>
 				</div>
 			</div>

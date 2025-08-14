@@ -30,7 +30,15 @@ const Homepage: React.FC = () => {
     const [openOnly, setOpenOnly] = useState<boolean>(false);
     const [verifiedOnly, setVerifiedOnly] = useState<boolean>(false);
     const [activeTab, setActiveTab] = useState<string>('Popular Categories');
+    
     const router = useRouter();
+
+    const [location, setLocation] = useState<string>('San Francisco, CA');
+    const [category, setCategory] = useState<string>('Any Category');
+    const [openNow, setOpenNow] = useState<boolean>(false);
+    const [anyCategory, setAnyCategory] = useState<boolean>(false);
+    const [userDistance, setUserDistance] = useState<boolean>(false);
+    const [isVerifiedOnly, setIsVerifiedOnly] = useState<boolean>(true);
 
     const categories: Category[] = [
         { name: 'Food', icon: <Package className="w-5 h-5" /> },
@@ -92,53 +100,127 @@ const Homepage: React.FC = () => {
 
             {/* Hero Section */}
             <section className="max-w-7xl mx-auto px-4 py-20">
-                <div className="flex items-center justify-between">
-                    <div className="max-w-md">
+                <div className="flex items-center justify-between flex-wrap">
+                    <div className="max-w-2xl">
                         <h1 className="text-5xl font-bold text-white mb-6">
                             Buy. Sell.<br />Connect.
                         </h1>
                         <p className="text-blue-100 text-lg mb-8 leading-relaxed">
                             Discover a smarter way to trade locally. Instantly connect with buyers and sellers near you in real-time—fast, simple, and reliable.
                         </p>
-                        <div className="flex-1 max-w-md mb-6">
-                            <form onSubmit={handleSearch} className="relative">
-                                <div className={`relative transition-all duration-200 ${isSearchFocused ? 'ring-2 ring-primary-500' : ''
-                                    }`}>
-                                    <Icon
-                                        name="Search"
-                                        size={18}
-                                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary"
-                                    />
+                        <div className="hero-search-filters max-w-full">
+                            <div className="bg-white rounded-lg p-1 flex items-center mb-6 shadow-lg">
+                                <div className="flex items-center space-x-3 px-4 flex-1">
+                                    <MapPin className="w-5 h-5 text-gray-600" />
                                     <input
                                         type="text"
-                                        placeholder="Search products, stores..."
-                                        value={searchQuery}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                                        onFocus={() => setIsSearchFocused(true)}
-                                        onBlur={() => setIsSearchFocused(false)}
-                                        className="w-full pl-10 pr-4 py-2 bg-surface-secondary border border-border rounded-lg text-sm placeholder-text-secondary focus:outline-none focus:bg-surface focus:border-primary-500 transition-all duration-200"
+                                        value={location}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLocation(e.target.value)}
+                                        className="flex-1 outline-none text-gray-800"
+                                        placeholder="Enter location"
                                     />
-                                    {searchQuery && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setSearchQuery('')}
-                                            className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-border-light transition-colors duration-200"
-                                        >
-                                            <Icon name="X" size={14} className="text-text-secondary" />
-                                        </button>
-                                    )}
                                 </div>
-                            </form>
-                        </div>
-                        <div className="flex space-x-4">
-                            <button onClick={() => router.push("/vendor/dashboard")}
-                                className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
-                                Create Storefront
-                            </button>
-                            <button onClick={() => router.push("/marketplace")}
-                                className="border border-white/30  text-white hover:bg-orange-500/20 hover:border-orange-500 px-6 py-3 rounded-lg font-semibold transition-colors">
-                                Explore Marketplace
-                            </button>
+
+                                <div className="h-6 w-px bg-gray-300"></div>
+
+                                <div className="flex items-center space-x-3 px-4 flex-1">
+                                    <select
+                                        value={category}
+                                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCategory(e.target.value)}
+                                        className="flex-1 outline-none text-gray-800 bg-transparent appearance-none cursor-pointer"
+                                    >
+                                        <option value="Any Category">Any Category</option>
+                                        <option value="Electronics">Electronics</option>
+                                        <option value="Clothing">Clothing</option>
+                                        <option value="Home & Garden">Home & Garden</option>
+                                        <option value="Services">Services</option>
+                                    </select>
+                                    <ChevronDown className="w-4 h-4 text-gray-600 pointer-events-none" />
+                                </div>
+
+                                <div className="h-6 w-px bg-gray-300"></div>
+
+                                <button className="px-4 py-2 text-gray-600 hover:text-gray-800">
+                                    Advanced
+                                </button>
+
+                                <button className="bg-orange-500 text-white px-8 py-3 rounded-md hover:bg-orange-600 transition-colors font-medium">
+                                    Search
+                                </button>
+                            </div>
+
+                            {/* Filter Checkboxes */}
+                            <div className="flex flex-wrap gap-6">
+                                <label className="flex items-center space-x-3 text-white cursor-pointer">
+                                    <div className="relative">
+                                        <input
+                                            type="checkbox"
+                                            checked={openNow}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setOpenNow(e.target.checked)}
+                                            className="sr-only"
+                                        />
+                                        <div className={`w-5 h-5 rounded border-2 border-white flex items-center justify-center ${openNow ? 'bg-white' : 'bg-transparent'}`}>
+                                            {openNow && <div className="w-2 h-2 bg-slate-800 rounded-sm"></div>}
+                                        </div>
+                                    </div>
+                                    <span>Open Now</span>
+                                </label>
+
+                                <label className="flex items-center space-x-3 text-white cursor-pointer">
+                                    <div className="relative">
+                                        <input
+                                            type="checkbox"
+                                            checked={anyCategory}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAnyCategory(e.target.checked)}
+                                            className="sr-only"
+                                        />
+                                        <div className={`w-5 h-5 rounded border-2 border-white flex items-center justify-center ${anyCategory ? 'bg-white' : 'bg-transparent'}`}>
+                                            {anyCategory && <div className="w-2 h-2 bg-slate-800 rounded-sm"></div>}
+                                        </div>
+                                    </div>
+                                    <span>Any Category</span>
+                                </label>
+
+                                <label className="flex items-center space-x-3 text-white cursor-pointer">
+                                    <div className="relative">
+                                        <input
+                                            type="checkbox"
+                                            checked={userDistance}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUserDistance(e.target.checked)}
+                                            className="sr-only"
+                                        />
+                                        <div className={`w-5 h-5 rounded border-2 border-white flex items-center justify-center ${userDistance ? 'bg-white' : 'bg-transparent'}`}>
+                                            {userDistance && <div className="w-2 h-2 bg-slate-800 rounded-sm"></div>}
+                                        </div>
+                                    </div>
+                                    <span>Any 20 km</span>
+                                </label>
+
+                                <label className="flex items-center space-x-3 text-white cursor-pointer">
+                                    <div className="relative">
+                                        <input
+                                            type="checkbox"
+                                            checked={isVerifiedOnly}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIsVerifiedOnly(e.target.checked)}
+                                            className="sr-only"
+                                        />
+                                        <div className={`w-5 h-5 rounded border-2 border-white flex items-center justify-center ${isVerifiedOnly ? 'bg-white' : 'bg-transparent'}`}>
+                                            {isVerifiedOnly && <div className="w-3 h-2 border-l-2 border-b-2 border-slate-800 transform rotate-[-45deg] translate-y-[-1px]"></div>}
+                                        </div>
+                                    </div>
+                                    <span>Verified Only</span>
+                                </label>
+                            </div>
+                            <div className="flex space-x-4 mt-10">
+                                <button onClick={() => router.push("/vendor/dashboard")}
+                                    className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                                    Create Storefront
+                                </button>
+                                <button onClick={() => router.push("/marketplace")}
+                                    className="border border-white/30  text-white hover:bg-orange-500/20 hover:border-orange-500 px-6 py-3 rounded-lg font-semibold transition-colors">
+                                    Explore Marketplace
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -179,7 +261,7 @@ const Homepage: React.FC = () => {
             {/* Navigation Tabs */}
             <section className="bg-white/10 backdrop-blur-sm">
                 <div className="max-w-7xl mx-auto px-4">
-                    <div className="flex space-x-8 py-4">
+                    <div className="flex space-x-8 py-4 overflow-x-auto">
                         {tabs.map((tab) => (
                             <button
                                 key={tab}

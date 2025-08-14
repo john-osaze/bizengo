@@ -49,7 +49,7 @@ interface Filters {
 	availability: AvailabilityFilters;
 }
 
-type SortOption = 'relevance' | 'price-low' | 'price-high' | 'rating' | 'newest' | 'popular';
+type SortOption = 'relevance' | 'price-low' | 'price-high' | 'rating' | 'newest' | 'popular' | 'category';
 
 type FilterType = 'category' | 'vendor' | 'priceRange' | 'rating' | 'availability';
 
@@ -58,6 +58,7 @@ interface VendorMap {
 }
 
 const MarketplaceBrowse: React.FC = () => {
+
 	// const searchParams = useSearchParams()
 	// const [searchParameters, setSearchParameters] = useSearchParams();
 	const [products, setProducts] = useState<Product[]>([]);
@@ -67,7 +68,12 @@ const MarketplaceBrowse: React.FC = () => {
 	const [isFilterPanelOpen, setIsFilterPanelOpen] = useState<boolean>(false);
 	const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 	const [isQuickViewOpen, setIsQuickViewOpen] = useState<boolean>(false);
-	const [isMobile, setIsMobile] = useState<boolean>(true);
+	const [isMobile, setIsMobile] = useState<boolean>(false);
+
+	useEffect(() => {
+		const mobileWidth = window.innerWidth < 768
+		setIsMobile(mobileWidth);
+	}, []);
 
 	const [filters, setFilters] = useState<Filters>({
 		categories: [],
@@ -211,7 +217,7 @@ const MarketplaceBrowse: React.FC = () => {
 
 		window.addEventListener('resize', handleResize);
 		return () => window.removeEventListener('resize', handleResize);
-	}, []);
+	}, [router]);
 
 	// useEffect(() => {
 	// 	// const searchParams = useSearchParams()

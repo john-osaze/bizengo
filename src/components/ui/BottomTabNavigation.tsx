@@ -105,11 +105,11 @@ const BottomTabNavigation: React.FC = () => {
             tooltip: 'Discover nearby products'
         },
         {
-            label: 'Map',
-            path: '/map-view',
-            icon: 'Map',
-            activeIcon: 'Map',
-            tooltip: 'Geographic product exploration'
+            label: 'Explore',
+            path: '/marketplace',
+            icon: 'Compass',
+            activeIcon: 'Compass',
+            tooltip: 'Explore the hyperlocal marketplace'
         },
         {
             label: 'Create',
