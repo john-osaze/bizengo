@@ -141,7 +141,7 @@ const Signup = () => {
             };
 
             const response = await axios.post(
-                "https://api.rootsnsquares.com/innovations/create-account.php",
+                "https://rsc-kl61.onrender.com/api/auth/signup",
                 requestBody,
                 {
                     headers: {
@@ -158,8 +158,9 @@ const Signup = () => {
                     title: data.message || "Account created successfully!",
                     description: "Verify your account from the OTP sent to your mail",
                 });
-                router.push(`/tools/auth/verify-otp?email=${formData.email}`);
+                router.push(`/auth/verify-otp?email=${formData.email}`);
             } else if (data.status === "error") {
+                console.log("Signup error:", data.message);
                 toast({
                     title: "Error creating account",
                     description: data.message,
@@ -167,6 +168,7 @@ const Signup = () => {
                 });
                 return;
             } else {
+                console.error("Unexpected response format:", data);
                 toast({
                     title: "Unexpected error",
                     description: "An unexpected error occurred during signup.",
@@ -175,6 +177,7 @@ const Signup = () => {
                 return;
             }
         } catch (error: any) {
+            console.log("Signup error:", error);
             toast({
                 title: "Signup failed",
                 description:
@@ -191,7 +194,7 @@ const Signup = () => {
             <div className="w-full max-w-2xl">
                 <div className="mb-8">
                     <Link
-                        href="/tools"
+                        href="/"
                         className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
                     >
                         <ArrowLeft className="h-4 w-4" />
@@ -206,7 +209,7 @@ const Signup = () => {
                         </div>
                         <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
                         <CardDescription>
-                            Join thousands of Nigerian entrepreneurs
+                            Join thousands of Nigerian business owners
                         </CardDescription>
                     </CardHeader>
 
@@ -241,33 +244,6 @@ const Signup = () => {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="businessName">Business Name</Label>
-                                <Input
-                                    id="businessName"
-                                    name="businessName"
-                                    type="text"
-                                    placeholder="Your Business Name"
-                                    value={formData.businessName}
-                                    onChange={handleInputChange}
-                                    className="h-11"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="description">Business Description</Label>
-                                <Input
-                                    id="description"
-                                    name="description"
-                                    type="text"
-                                    placeholder="We offer agricultural consultancy and tools..."
-                                    value={formData.description}
-                                    onChange={handleInputChange}
-                                    required
-                                    className="h-11"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
                                 <Label htmlFor="phone">Phone Number</Label>
                                 <Input
                                     id="phone"
@@ -275,62 +251,6 @@ const Signup = () => {
                                     type="tel"
                                     placeholder="+2348123456789"
                                     value={formData.phone}
-                                    onChange={handleInputChange}
-                                    required
-                                    className="h-11"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="address">Address</Label>
-                                <Input
-                                    id="address"
-                                    name="address"
-                                    type="text"
-                                    placeholder="15 Johnson Street, Enugu"
-                                    value={formData.address}
-                                    onChange={handleInputChange}
-                                    required
-                                    className="h-11"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="country">Country</Label>
-                                <Input
-                                    id="country"
-                                    name="country"
-                                    type="text"
-                                    placeholder="Nigeria"
-                                    value={formData.country}
-                                    onChange={handleInputChange}
-                                    required
-                                    className="h-11"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="state">State</Label>
-                                <Input
-                                    id="state"
-                                    name="state"
-                                    type="text"
-                                    placeholder="Enugu"
-                                    value={formData.state}
-                                    onChange={handleInputChange}
-                                    required
-                                    className="h-11"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="zip">Zip Code</Label>
-                                <Input
-                                    id="zip"
-                                    name="zip"
-                                    type="text"
-                                    placeholder="400001"
-                                    value={formData.zip}
                                     onChange={handleInputChange}
                                     required
                                     className="h-11"
@@ -405,7 +325,7 @@ const Signup = () => {
                         <div className="text-center text-sm text-gray-600">
                             Already have an account?{" "}
                             <Link
-                                href="/tools/auth/login"
+                                href="/auth/login"
                                 className="text-blue-600 hover:text-blue-700 font-medium"
                             >
                                 Sign in here

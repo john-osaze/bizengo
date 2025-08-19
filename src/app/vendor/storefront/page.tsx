@@ -272,7 +272,7 @@ const VendorStorefront: React.FC = () => {
 			</Head>
 
 			<div className="min-h-screen bg-background">
-				<main className="max-w-[85vw] mx-auto px-4 py-6">
+				<main className="max-w-[85vw] mx-auto px-0 md:px-4 py-6">
 					{/* Page Header */}
 					<div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
 						<div>

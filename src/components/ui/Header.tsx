@@ -5,6 +5,26 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation'; // Next.js routing hooks
 import Icon from './AppIcon'; // Adjust path as needed
 import Link from 'next/link';
+import { ShoppingCart, Store, X } from 'lucide-react';
+import "./custom.css";
+
+type OptionType = 'shopping' | 'vendor' | null;
+
+interface ModalOption {
+    id: 'shopping' | 'vendor';
+    title: string;
+    description: string;
+    icon: React.ComponentType<{ className?: string }>;
+    buttonText: string;
+    gradient: string;
+    hoverGradient: string;
+    iconColor: string;
+    buttonColor: string;
+    buttonHoverColor: string;
+    ringColor: string;
+    pulseColor: string;
+    route: string;
+}
 
 const Header: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState<string>('');
@@ -14,26 +34,89 @@ const Header: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement | null>(null);
 
-    useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            // Assert event.target as a Node for the contains method
-            const targetNode = event.target as Node;
+    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    const [selectedOption, setSelectedOption] = useState<OptionType>(null);
 
-            // Check if dropdownRef.current exists AND is an Element (which HTMLElement extends)
-            // AND if the click target is not contained within the dropdown.
-            if (
-                dropdownRef.current &&
-                dropdownRef.current instanceof Element && // Ensure it's an actual DOM Element
-                !dropdownRef.current.contains(targetNode)
-            ) {
-                setIsOpen(false);
-            }
+    const openModal = (): void => setIsModalOpen(true);
+
+    const closeModal = (): void => {
+        setIsModalOpen(false);
+        setSelectedOption(null);
+    };
+
+    // Prevent body scroll when modal is open
+    useEffect((): (() => void) => {
+        if (isModalOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
         }
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
+        return (): void => {
+            document.body.style.overflow = 'unset';
         };
-    }, []);
+    }, [isModalOpen]);
+
+    const handleOptionSelect = (option: 'shopping' | 'vendor'): void => {
+        setSelectedOption(option);
+        // Add a slight delay before closing for better UX
+        setTimeout((): void => {
+            closeModal();
+        }, 300);
+    };
+
+    const modalOptions: ModalOption[] = [
+        {
+            id: 'shopping',
+            title: 'Start Shopping',
+            description: 'Browse our amazing collection of products and find exactly what you need',
+            icon: ShoppingCart,
+            buttonText: 'Start Shopping',
+            gradient: 'from-purple-50 to-purple-100',
+            hoverGradient: 'hover:border-purple-300',
+            iconColor: 'text-purple-600',
+            buttonColor: 'bg-purple-600',
+            buttonHoverColor: 'group-hover:bg-purple-700',
+            ringColor: 'ring-purple-500',
+            pulseColor: 'bg-purple-600',
+            route: '/auth/signup'
+        },
+        {
+            id: 'vendor',
+            title: 'Become a Vendor',
+            description: 'Join our marketplace and start selling your products to thousands of customers',
+            icon: Store,
+            buttonText: 'Become a Vendor',
+            gradient: 'from-blue-50 to-blue-100',
+            hoverGradient: 'hover:border-blue-300',
+            iconColor: 'text-blue-600',
+            buttonColor: 'bg-blue-600',
+            buttonHoverColor: 'group-hover:bg-blue-700',
+            ringColor: 'ring-blue-500',
+            pulseColor: 'bg-blue-600',
+            route: '/vendor/auth'
+        }
+    ];
+
+    // useEffect(() => {
+    //     function handleClickOutside(event: MouseEvent) {
+    //         // Assert event.target as a Node for the contains method
+    //         const targetNode = event.target as Node;
+
+    //         // Check if dropdownRef.current exists AND is an Element (which HTMLElement extends)
+    //         // AND if the click target is not contained within the dropdown.
+    //         if (
+    //             dropdownRef.current &&
+    //             dropdownRef.current instanceof Element && // Ensure it's an actual DOM Element
+    //             !dropdownRef.current.contains(targetNode)
+    //         ) {
+    //             setIsModalOpen(false);
+    //         }
+    //     }
+    //     document.addEventListener("mousedown", handleClickOutside);
+    //     return () => {
+    //         document.removeEventListener("mousedown", handleClickOutside);
+    //     };
+    // }, []);
 
     const getPageTitle = (): string => {
         switch (pathname) { // Use pathname
@@ -81,7 +164,7 @@ const Header: React.FC = () => {
 
     return (
         <header className="sticky top-0 z-[200] bg-white border-b border-border">
-            <div className="h-16 md:h-18 px-4 md:px-6 flex items-center justify-between">
+            <div className="max-w-7xl mx-auto h-16 md:h-18 px-4 md:px-2 flex items-center justify-between">
 
                 <div className="flex items-center space-x-4">
                     {showBackButton ? (
@@ -105,40 +188,6 @@ const Header: React.FC = () => {
                         </Link>
                     )}
                 </div>
-
-                {/* Center Section - Search
-                {showSearch && (
-                    <div className="flex-1 max-w-md mx-4">
-                        <form onSubmit={handleSearch} className="relative">
-                            <div className={`relative transition-all duration-200 ${isSearchFocused ? 'ring-2 ring-primary-500' : ''
-                                }`}>
-                                <Icon
-                                    name="Search"
-                                    size={18}
-                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary"
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Search products, stores..."
-                                    value={searchQuery}
-                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                                    onFocus={() => setIsSearchFocused(true)}
-                                    onBlur={() => setIsSearchFocused(false)}
-                                    className="w-full pl-10 pr-4 py-2 bg-surface-secondary border border-border rounded-lg text-sm placeholder-text-secondary focus:outline-none focus:bg-surface focus:border-primary-500 transition-all duration-200"
-                                />
-                                {searchQuery && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setSearchQuery('')}
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-border-light transition-colors duration-200"
-                                    >
-                                        <Icon name="X" size={14} className="text-text-secondary" />
-                                    </button>
-                                )}
-                            </div>
-                        </form>
-                    </div>
-                )} */}
 
                 {/* Right Section */}
                 <div className="flex items-center space-x-2">
@@ -165,21 +214,114 @@ const Header: React.FC = () => {
                     <div className="flex items-center">
 
                         {/* Desktop View: Hidden below sm breakpoint, displayed as flex above */}
-                        <div className="hidden sm:flex items-center gap-2">
+                        <div className="hidden sm:flex items-center gap-2 gap-x-6">
                             <Link
-                                href="/vendor/dashboard"
+                                href="/auth/login"
                                 className="p-2 rounded-lg hover:bg-surface-secondary transition-colors duration-200 relative text-sm font-medium text-primary"
-                                aria-label="Vendor tools"
+                                aria-label="Login your account"
+
                             >
-                                Create a Storefront
+                                Login
                             </Link>
                             <button
-                                onClick={() => router.push('/user-profile')}
+                                onClick={openModal}
+                                className='flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 bg-primary text-white hover:bg-primary/80 font-medium'
+                                aria-label="Get Started"
+                            >Get Started
+                            </button>
+
+                            {/* Modal Overlay */}
+                            {isModalOpen && (
+                                <div
+                                    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fade-in"
+                                    onClick={closeModal}
+                                >
+                                    {/* Modal Container */}
+                                    <div
+                                        className="bg-white rounded-2xl shadow-2xl max-w-4xl px-4 py-8 w-full max-h-[90vh] overflow-auto animate-scale-up"
+                                        onClick={(e: React.MouseEvent<HTMLDivElement>): void => e.stopPropagation()}
+                                    >
+                                        {/* Modal Header */}
+                                        <div className="relative p-6 pb-4 border-b border-gray-100">
+                                            <button
+                                                onClick={closeModal}
+                                                className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                                            >
+                                                <X className="w-6 h-6 text-gray-500" />
+                                            </button>
+                                            <div className="text-center">
+                                                <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                                                    Choose Your Path
+                                                </h2>
+                                                <p className="text-gray-600">
+                                                    Select how you'd like to get started with our platform
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Modal Content */}
+                                        <div className="p-6">
+                                            {/* Connection Line */}
+                                            <div className="relative mb-8">
+                                                <div className="absolute top-1/2 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-purple-200 to-blue-200 transform -translate-y-1/2"></div>
+                                                <div className="absolute top-1/2 left-1/2 w-3 h-3 bg-purple-400 rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
+                                            </div>
+
+                                            {/* Options Grid */}
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                                {modalOptions.map((option: ModalOption) => {
+                                                    const Icon = option.icon;
+                                                    const isSelected = selectedOption === option.id;
+
+                                                    return (
+                                                        <div
+                                                            key={option.id}
+                                                            className={`group relative bg-gradient-to-br ${option.gradient} border-2 border-${option.id === 'shopping' ? 'purple' : 'blue'}-200 rounded-xl p-6 cursor-pointer transition-all duration-300 hover:shadow-lg ${option.hoverGradient} hover:scale-105 ${isSelected ? `ring-2 ${option.ringColor} bg-${option.id === 'shopping' ? 'purple' : 'blue'}-100` : ''
+                                                                }`}
+                                                            onClick={(): void => handleOptionSelect(option.id)}
+                                                        >
+                                                            <div className="text-center">
+                                                                <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full shadow-md mb-4 group-hover:shadow-lg transition-shadow duration-300">
+                                                                    <Icon className={`w-8 h-8 ${option.iconColor}`} />
+                                                                </div>
+                                                                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                                                                    {option.title}
+                                                                </h3>
+                                                                <p className="text-gray-600 mb-4 text-sm leading-relaxed">
+                                                                    {option.description}
+                                                                </p>
+                                                                <Link href={option.route} className={`inline-block ${option.buttonColor} text-white px-6 py-2 rounded-lg font-medium text-sm ${option.buttonHoverColor} transition-colors duration-300`}>
+                                                                    {option.buttonText}
+                                                                </Link>
+                                                            </div>
+                                                            {isSelected && (
+                                                                <div className={`absolute inset-0 ${option.pulseColor} bg-opacity-10 rounded-xl animate-pulse`}></div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+
+                                            {/* Bottom Decorative Element */}
+                                            <div className="flex justify-center">
+                                                <div className="flex space-x-2">
+                                                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+                                                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                                                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <button
+                                onClick={() => router.push('/')}
                                 className="p-2 rounded-lg hover:bg-surface-secondary transition-colors duration-200 relative"
-                                aria-label="User profile"
+                                aria-label="User Shopping Cart"
                             >
-                                <Icon name="User" size={20} className="text-text-primary" />
-                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full border-2 border-surface"></div>
+                                <Icon name="ShoppingCart" size={20} className="text-text-primary" />
+                                <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border-1 border-surface"></div>
                             </button>
                         </div>
 
@@ -191,25 +333,103 @@ const Header: React.FC = () => {
                                 className="p-2 rounded-lg hover:bg-surface-secondary transition-colors duration-200"
                                 aria-label="Open menu"
                             >
-                                <Icon name="MoreVertical" size={20} className="text-text-primary" />
+                                <Icon name="AlignJustify" size={20} className="text-text-primary" />
                             </button>
 
                             {isOpen && (
                                 <div className="absolute top-full right-0 mt-2 w-60 bg-white rounded-lg shadow-xl z-10 overflow-hidden border border-surface-border">
                                     <Link
-                                        href="/vendor/dashboard"
+                                        href="/auth/login"
                                         className="block w-full text-left p-3 text-sm font-medium text-text-primary hover:bg-surface-secondary transition-colors duration-200"
-                                        aria-label="Vendor option"
+                                        aria-label="Login to your account"
                                     >
-                                        Create a Storefront
+                                        Login
                                     </Link>
                                     <button
-                                        onClick={() => handleNavigation('/user-profile')}
+                                        onClick={openModal}
                                         className=" w-full text-left p-3 text-sm font-medium text-text-primary hover:bg-surface-secondary transition-colors duration-200 flex items-center gap-2"
-                                        aria-label="User profile option"
+                                        aria-label="Start selling"
                                     >
-                                        User profile
+                                        Get Started
                                     </button>
+
+                                    {isModalOpen && (
+                                        <div
+                                            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 z-50 animate-fade-in"
+                                            onClick={closeModal}
+                                        >
+                                            {/* Modal Container */}
+                                            <div
+                                                className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-auto animate-scale-up"
+                                                onClick={(e: React.MouseEvent<HTMLDivElement>): void => e.stopPropagation()}
+                                            >
+                                                {/* Modal Header */}
+                                                <div className="relative p-6 pb-4 border-b border-gray-100">
+                                                    <button
+                                                        onClick={closeModal}
+                                                        className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                                                    >
+                                                        <X className="w-6 h-6 text-gray-500" />
+                                                    </button>
+                                                    <div className="text-center">
+                                                        <h2 className="text-2xl font-bold text-gray-800 mb-2 mt-8">
+                                                            Choose Your Path
+                                                        </h2>
+                                                        <p className="text-gray-600">
+                                                            Select how you'd like to get started with our platform
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Modal Content */}
+                                                <div className="p-6">
+                                                    {/* Connection Line */}
+                                                    <div className="relative mb-8">
+                                                        <div className="absolute top-1/2 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-purple-200 to-blue-200 transform -translate-y-1/2"></div>
+                                                        <div className="absolute top-1/2 left-1/2 w-3 h-3 bg-purple-400 rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
+                                                    </div>
+
+                                                    {/* Options Grid */}
+                                                    <div className="flex justify-center items-center gap-6 mb-6">
+                                                        {modalOptions.map((option: ModalOption) => {
+                                                            const Icon = option.icon;
+                                                            const isSelected = selectedOption === option.id;
+
+                                                            return (
+                                                                <div
+                                                                    key={option.id}
+                                                                    className={`group relative bg-gradient-to-br ${option.gradient} border-2 border-${option.id === 'shopping' ? 'purple' : 'blue'}-200 rounded-xl p-6 cursor-pointer transition-all duration-300 hover:shadow-lg ${option.hoverGradient} hover:scale-105 ${isSelected ? `ring-2 ${option.ringColor} bg-${option.id === 'shopping' ? 'purple' : 'blue'}-100` : ''
+                                                                        }`}
+                                                                    onClick={(): void => handleOptionSelect(option.id)}
+                                                                >
+                                                                    <Link href={option.route} className="block text-center">
+                                                                        <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full shadow-md mb-4 group-hover:shadow-lg transition-shadow duration-300">
+                                                                            <Icon className={`w-8 h-8 ${option.iconColor}`} />
+                                                                        </div>
+                                                                        <button className={`inline-block  text-black px-2 py-2 rounded-lg font-medium text-sm transition-colors duration-300`}>
+                                                                            {option.buttonText}
+                                                                        </button>
+                                                                    </Link>
+                                                                    {isSelected && (
+                                                                        <div className={`absolute inset-0 ${option.pulseColor} bg-opacity-10 rounded-xl animate-pulse`}></div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+
+                                                    {/* Bottom Decorative Element */}
+                                                    <div className="flex justify-center">
+                                                        <div className="flex space-x-2">
+                                                            <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+                                                            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                                                            <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>

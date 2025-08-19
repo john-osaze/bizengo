@@ -251,7 +251,7 @@ const VendorDashboard: React.FC = () => {
 			<div className="min-h-screen bg-background">
 
 				{/* Main Content */}
-				<main className="max-w-[85vw] mx-auto px-4 py-6">
+				<main className="max-w-[85vw] mx-auto px-0 md:px-4 py-6">
 					{/* Welcome Section */}
 					<div className="mb-8">
 						<h1 className="font-heading font-bold text-2xl text-text-primary mb-2">

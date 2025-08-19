@@ -30,7 +30,7 @@ const Homepage: React.FC = () => {
     const [openOnly, setOpenOnly] = useState<boolean>(false);
     const [verifiedOnly, setVerifiedOnly] = useState<boolean>(false);
     const [activeTab, setActiveTab] = useState<string>('Popular Categories');
-    
+
     const router = useRouter();
 
     const [location, setLocation] = useState<string>('San Francisco, CA');
@@ -99,16 +99,16 @@ const Homepage: React.FC = () => {
         <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900">
 
             {/* Hero Section */}
-            <section className="max-w-7xl mx-auto px-4 py-20">
-                <div className="flex items-center justify-between flex-wrap">
-                    <div className="max-w-2xl">
+            <section className="max-w-7xl mx-auto px-4 py-28">
+                <div className="flex items-center justify-between">
+                    <div className="max-w-full md:max-w-2xl">
                         <h1 className="text-5xl font-bold text-white mb-6">
                             Buy. Sell.<br />Connect.
                         </h1>
-                        <p className="text-blue-100 text-lg mb-8 leading-relaxed">
+                        <p className="text-blue-100 text-lg mb-8 text-wrap whitespace-normal">
                             Discover a smarter way to trade locally. Instantly connect with buyers and sellers near you in real-time—fast, simple, and reliable.
                         </p>
-                        <div className="hero-search-filters max-w-full">
+                        <div className="hidden md:block hero-search-filters max-w-full">
                             <div className="bg-white rounded-lg p-1 flex items-center mb-6 shadow-lg">
                                 <div className="flex items-center space-x-3 px-4 flex-1">
                                     <MapPin className="w-5 h-5 text-gray-600" />
@@ -211,7 +211,7 @@ const Homepage: React.FC = () => {
                                     <span>Verified Only</span>
                                 </label>
                             </div>
-                            <div className="flex space-x-4 mt-10">
+                            {/* <div className="flex space-x-4 mt-10">
                                 <button onClick={() => router.push("/vendor/dashboard")}
                                     className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                                     Create Storefront
@@ -220,12 +220,43 @@ const Homepage: React.FC = () => {
                                     className="border border-white/30  text-white hover:bg-orange-500/20 hover:border-orange-500 px-6 py-3 rounded-lg font-semibold transition-colors">
                                     Explore Marketplace
                                 </button>
-                            </div>
+                            </div> */}
+                        </div>
+
+                        <div className="flex-1 md:hidden max-w-md">
+                            <form onSubmit={handleSearch} className="relative">
+                                <div className={`relative transition-all duration-200 ${isSearchFocused ? 'ring-2 ring-primary-500' : ''
+                                    }`}>
+                                    <Icon
+                                        name="Search"
+                                        size={18}
+                                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary"
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Search products, stores..."
+                                        value={searchQuery}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                                        onFocus={() => setIsSearchFocused(true)}
+                                        onBlur={() => setIsSearchFocused(false)}
+                                        className="w-full pl-10 pr-4 py-2 bg-surface-secondary border border-border rounded-lg text-sm placeholder-text-secondary focus:outline-none focus:bg-surface focus:border-primary-500 transition-all duration-200"
+                                    />
+                                    {searchQuery && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setSearchQuery('')}
+                                            className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-border-light transition-colors duration-200"
+                                        >
+                                            <Icon name="X" size={14} className="text-text-secondary" />
+                                        </button>
+                                    )}
+                                </div>
+                            </form>
                         </div>
                     </div>
 
                     {/* Hero Illustration */}
-                    <div className="relative">
+                    <div className="relative hidden md:block">
                         <div className="w-80 h-80 relative">
                             {/* Location Pin */}
                             <div className="absolute top-8 right-12 bg-orange-500 rounded-full p-3 shadow-lg">

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sparkles, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { Sparkles, Eye, EyeOff, ArrowLeft, MapPin } from "lucide-react";
 import Link from "next/link";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
@@ -24,7 +24,7 @@ const Login = () => {
 
         try {
             const response = await axios.post(
-                "https://api.rootsnsquares.com/innovations/login.php",
+                "https://rsc-kl61.onrender.com/api/auth/login",
                 {
                     email: email,
                     password: password,
@@ -42,10 +42,11 @@ const Login = () => {
                 sessionStorage.setItem("RSEmail", email);
                 toast({
                     title: "Login successful!",
-                    description: "Welcome back to Business Bright Tools",
+                    description: "Welcome back",
                 });
-                window.location.href = "/tools/dashboard";
+                window.location.href = "/marketplace";
             } else {
+                console.error("Login error:", data.message);
                 toast({
                     title: "Login failed!",
                     description: "An unexpected error occurred during login.",
@@ -53,6 +54,7 @@ const Login = () => {
                 });
             }
         } catch (error: any) {
+            console.error("Login error:", error);
             toast({
                 title: "Something happened!",
                 description: "An unexpected error occurred during login.",
@@ -64,10 +66,10 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center">
             <div className="w-full max-w-md">
                 <div className="mb-8">
-                    <Link href="/tools" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
+                    <Link href="/" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
                         <ArrowLeft className="h-4 w-4" />
                         Back to Home
                     </Link>
@@ -76,10 +78,10 @@ const Login = () => {
                 <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
                     <CardHeader className="text-center pb-2">
                         <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-                            <Sparkles className="h-6 w-6 text-white" />
+                            <MapPin className="h-6 w-6 text-white" />
                         </div>
                         <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
-                        <CardDescription>Sign in to access your business dashboard</CardDescription>
+                        <CardDescription>Sign in to access your account</CardDescription>
                     </CardHeader>
 
                     <CardContent className="space-y-6">
@@ -130,7 +132,7 @@ const Login = () => {
                                     />
                                     <Label htmlFor="remember" className="text-sm text-gray-600">Remember me</Label>
                                 </div>
-                                <Link href="/tools/auth/forgot-password" className="text-sm text-blue-500 hover:underline">
+                                <Link href="/auth/forgot-password" className="text-sm text-blue-500 hover:underline">
                                     Forgot password?
                                 </Link>
                             </div>
@@ -153,7 +155,7 @@ const Login = () => {
 
                         <div className="text-center text-sm text-gray-600">
                             Don't have an account?{" "}
-                            <Link href="/tools/auth/signup" className="text-blue-600 hover:text-blue-700 font-medium">
+                            <Link href="/auth/signup" className="text-blue-600 hover:text-blue-700 font-medium">
                                 Sign up here
                             </Link>
                         </div>

@@ -372,7 +372,7 @@ const ProductManagement: React.FC = () => {
 			<RoleProvider>
 				<RoleContextNavigation>
 					<div className="min-h-screen bg-background">
-						<div className="max-w-[85vw] mx-auto p-6">
+						<div className="max-w-[85vw] mx-auto py-6 px-0 md:px-4">
 							{/* Header */}
 							<div className="flex items-center justify-between mb-8">
 								<div>
