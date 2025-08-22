@@ -928,22 +928,17 @@ const ProductManagement: React.FC = () => {
             </div>
 
             {/* Modals */}
-            {showAddModal && (
-              <AddProductModal
-                isOpen={showAddModal}
-                onClose={() => {
-                  if (!loading) {
-                    // Prevent closing while loading
-                    setShowAddModal(false);
-                    setEditingProduct(null);
-                  }
-                }}
-                onSave={handleSaveProduct}
-                editingProduct={editingProduct}
-                loading={loading}
-                disabled={loading} // Disable form while loading
-              />
-            )}
+            <AddProductModal
+              isOpen={showAddModal}
+              onClose={() => {
+                if (!loading) {
+                  setShowAddModal(false);
+                  setEditingProduct(null);
+                }
+              }}
+              onSave={handleSaveProduct}
+              editingProduct={editingProduct}
+            />
 
             {showStockAlerts && (
               <StockAlerts onClose={() => setShowStockAlerts(false)} />
