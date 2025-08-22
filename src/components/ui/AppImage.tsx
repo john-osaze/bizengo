@@ -1,18 +1,27 @@
 import React from 'react';
-import Image from 'next/image'; // Import Next.js Image component
+import Image, { ImageProps as NextImageProps } from 'next/image';
 
-interface ImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+type AppImageProps = Omit<NextImageProps, 'src' | 'alt'> & {
     src: string;
     alt?: string;
     className?: string;
-    fill?: boolean;  // added fill prop to allow for resizing
+    fill?: boolean;
     width?: number;
     height?: number;
-}
+};
 
-const AppImage: React.FC<ImageProps> = ({ src, alt = "Image Name", className = "", width, height, ...props }) => {
+const AppImage: React.FC<AppImageProps> = ({ 
+    src, 
+    alt = "Image Name", 
+    className = "", 
+    fill,
+    width = 100, // default width if not provided
+    height = 100, // default height if not provided
+    ...props 
+}) => {
     const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-        (e.target as HTMLImageElement).src = "/assets/images/no_image.png";
+        const imgElement = e.target as HTMLImageElement;
+        imgElement.src = "/assets/images/no_image.png";
     };
 
     return (
@@ -21,8 +30,9 @@ const AppImage: React.FC<ImageProps> = ({ src, alt = "Image Name", className = "
             alt={alt}
             className={className}
             onError={handleImageError}
-            width={width}
-            height={height}
+            fill={fill}
+            width={!fill ? width : undefined}
+            height={!fill ? height : undefined}
             {...props}
         />
     );

@@ -124,7 +124,7 @@ const Homepage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900">
+    <div className="min-h-screen bg-[#001d3b]">
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 py-28">
         <div className="flex items-center justify-between">
@@ -179,7 +179,7 @@ const Homepage: React.FC = () => {
                   Advanced
                 </button>
 
-                <button className="bg-orange-500 text-white px-8 py-3 rounded-md hover:bg-orange-600 transition-colors font-medium">
+                <button className="bg-[#001d3b] text-white px-8 py-3 rounded-md hover:bg-orange-600 transition-colors font-medium">
                   Search
                 </button>
               </div>
@@ -366,7 +366,7 @@ const Homepage: React.FC = () => {
       </section>
 
       {/* Navigation Tabs */}
-      <section className="bg-white/10 backdrop-blur-sm">
+      <section className="bg-orange-500 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex space-x-8 py-4 overflow-x-auto">
             {tabs.map((tab) => (
@@ -375,8 +375,8 @@ const Homepage: React.FC = () => {
                 onClick={() => setActiveTab(tab)}
                 className={`text-[10px] sm:text-[12px] md:text-[14px] lg:text-[16px] font-medium transition-colors border-b-2 pb-2 ${
                   activeTab === tab
-                    ? "text-white border-orange-400"
-                    : "text-blue-200 border-transparent hover:text-white"
+                    ? "text-white border-white"
+                    : "text-white border-transparent hover:text-white"
                 }`}
               >
                 {tab}

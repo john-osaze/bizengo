@@ -18,10 +18,10 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "@/hooks/use-toast";
-// Using fetch instead of axios
 import { useRouter } from "next/navigation";
 
 const passwordStrength = (password: string): number => {
@@ -137,7 +137,7 @@ const Signup = () => {
     // Validation
     if (formData.password !== formData.confirmPassword) {
       toast({
-        title: "Password Mismatch",
+        title: "❌ Password Mismatch",
         description: "Passwords do not match. Please check and try again.",
         variant: "destructive",
       });
@@ -146,7 +146,7 @@ const Signup = () => {
 
     if (passwordStrengthScore < 3) {
       toast({
-        title: "Weak Password",
+        title: "⚠️ Weak Password",
         description:
           "Please create a stronger password with at least 8 characters, including uppercase, lowercase, numbers, and special characters.",
         variant: "destructive",
@@ -162,7 +162,7 @@ const Signup = () => {
       !formData.state
     ) {
       toast({
-        title: "Missing Information",
+        title: "📝 Missing Information",
         description: "Please fill in all required fields.",
         variant: "destructive",
       });
@@ -173,8 +173,9 @@ const Signup = () => {
 
     // Show loading notification
     toast({
-      title: "Creating Account",
-      description: "Please wait while we create your account...",
+      title: "⏳ Creating Your Account",
+      description:
+        "Please wait while we set up your account. This may take a few moments...",
     });
 
     try {
@@ -206,58 +207,95 @@ const Signup = () => {
         }
       );
 
-      console.log("Response:", response);
+      console.log("Response status:", response.status);
       const data = await response.json();
+      console.log("Response data:", data);
 
       if (response.ok) {
         // Success notification
         toast({
-          title: "Account Created Successfully! 🎉",
+          title: "🎉 Account Created Successfully!",
           description:
             data.message ||
-            "Your account has been created. Please check your email for verification instructions.",
+            "Your account has been created successfully. You can now sign in with your credentials.",
         });
 
-        // Store email for potential verification flow
-        if (typeof window !== "undefined") {
-          sessionStorage.setItem("RSEmail", formData.email);
-        }
+        // Clear form data
+        setFormData({
+          name: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+          phone: "",
+          country: "",
+          state: "",
+          referral_code: "",
+        });
 
-        // Redirect based on response or to a default page
+        // Redirect to login after a short delay
         setTimeout(() => {
-          router.push(
-            `/auth/verify-otp?email=${encodeURIComponent(formData.email)}`
-          );
+          router.push("/auth/login");
         }, 2000);
       } else {
-        // Handle unexpected success status codes
+        // Handle API error responses
+        let errorMessage = "Failed to create account. Please try again.";
+        let errorTitle = "❌ Signup Failed";
+
+        if (data.message) {
+          errorMessage = data.message;
+        } else if (data.error) {
+          errorMessage = data.error;
+        } else if (data.errors && Array.isArray(data.errors)) {
+          errorMessage = data.errors.join(", ");
+        }
+
+        // Handle specific error cases
+        if (response.status === 400) {
+          errorTitle = "⚠️ Invalid Information";
+          if (errorMessage.toLowerCase().includes("email")) {
+            errorMessage =
+              "This email address is already registered or invalid.";
+          } else if (errorMessage.toLowerCase().includes("phone")) {
+            errorMessage =
+              "This phone number is already registered or invalid.";
+          }
+        } else if (response.status === 409) {
+          errorTitle = "👤 Account Already Exists";
+          errorMessage =
+            "An account with this email or phone number already exists.";
+        } else if (response.status === 422) {
+          errorTitle = "📋 Validation Error";
+          errorMessage =
+            errorMessage || "Please check your information and try again.";
+        } else if (response.status === 500) {
+          errorTitle = "🔧 Server Error";
+          errorMessage =
+            "Our servers are experiencing issues. Please try again later.";
+        }
+
         toast({
-          title: "Account Created",
-          description:
-            data.message || "Account created but with an unexpected response.",
+          title: errorTitle,
+          description: errorMessage,
+          variant: "destructive",
         });
       }
     } catch (error: any) {
       console.error("Signup error:", error);
 
       let errorMessage = "Failed to create account. Please try again.";
-      let errorTitle = "Signup Failed";
+      let errorTitle = "❌ Signup Failed";
 
-      if (error instanceof TypeError && error.message.includes("fetch")) {
+      if (error.name === "TypeError" && error.message.includes("fetch")) {
         // Network error
-        errorTitle = "Connection Error";
+        errorTitle = "🌐 Connection Error";
         errorMessage =
-          "Unable to connect to the server. Please check your internet connection and try again.";
-      } else {
-        // Parse response error if available
-        try {
-          const errorData = await error.response?.json?.();
-          if (errorData?.message) {
-            errorMessage = errorData.message;
-          }
-        } catch (parseError) {
-          // Use default error message
-        }
+          "Unable to connect to our servers. Please check your internet connection and try again.";
+      } else if (error.message.includes("timeout")) {
+        errorTitle = "⏱️ Request Timeout";
+        errorMessage =
+          "The request took too long to complete. Please check your connection and try again.";
+      } else if (error.message) {
+        errorMessage = error.message;
       }
 
       toast({
@@ -297,7 +335,7 @@ const Signup = () => {
           </CardHeader>
 
           <CardContent className="space-y-6">
-            <div onSubmit={handleSignup} className="space-y-4">
+            <form onSubmit={handleSignup} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name *</Label>
                 <Input
@@ -308,6 +346,7 @@ const Signup = () => {
                   value={formData.name}
                   onChange={handleInputChange}
                   required
+                  disabled={isLoading}
                   className="h-11"
                 />
               </div>
@@ -322,6 +361,7 @@ const Signup = () => {
                   value={formData.email}
                   onChange={handleInputChange}
                   required
+                  disabled={isLoading}
                   className="h-11"
                 />
               </div>
@@ -336,6 +376,7 @@ const Signup = () => {
                   value={formData.phone}
                   onChange={handleInputChange}
                   required
+                  disabled={isLoading}
                   className="h-11"
                 />
               </div>
@@ -351,6 +392,7 @@ const Signup = () => {
                     value={formData.country}
                     onChange={handleInputChange}
                     required
+                    disabled={isLoading}
                     className="h-11"
                   />
                 </div>
@@ -365,6 +407,7 @@ const Signup = () => {
                     value={formData.state}
                     onChange={handleInputChange}
                     required
+                    disabled={isLoading}
                     className="h-11"
                   />
                 </div>
@@ -379,6 +422,7 @@ const Signup = () => {
                   placeholder="ABCD1234"
                   value={formData.referral_code}
                   onChange={handleInputChange}
+                  disabled={isLoading}
                   className="h-11"
                 />
               </div>
@@ -394,12 +438,14 @@ const Signup = () => {
                     value={formData.password}
                     onChange={handleInputChange}
                     required
+                    disabled={isLoading}
                     className="h-11 pr-10"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    disabled={isLoading}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 disabled:opacity-50"
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -424,6 +470,7 @@ const Signup = () => {
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
                   required
+                  disabled={isLoading}
                   className="h-11"
                 />
                 {formData.confirmPassword && (
@@ -449,20 +496,30 @@ const Signup = () => {
 
               <Button
                 type="submit"
-                className="w-full h-11 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-11 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                 disabled={
                   isLoading || !passwordsMatch || passwordStrengthScore < 3
                 }
               >
                 {isLoading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                    <Loader2 className="animate-spin h-4 w-4 mr-2" />
                     Creating Account...
                   </>
                 ) : (
                   "Create Account"
                 )}
               </Button>
+
+              {/* Loading overlay for form */}
+              {isLoading && (
+                <div className="absolute inset-0 bg-white/50 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                  <div className="bg-white rounded-lg p-6 shadow-lg flex items-center gap-3">
+                    <Loader2 className="animate-spin h-5 w-5 text-blue-600" />
+                    <p className="text-gray-700">Setting up your account...</p>
+                  </div>
+                </div>
+              )}
 
               {/* Validation hints */}
               <div className="text-xs text-gray-500 space-y-1">
@@ -472,7 +529,7 @@ const Signup = () => {
                   case, numbers, and symbols)
                 </p>
               </div>
-            </div>
+            </form>
 
             <div className="text-center text-sm text-gray-600">
               Already have an account?{" "}
