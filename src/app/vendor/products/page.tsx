@@ -3,10 +3,10 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { RoleProvider } from "@/components/ui/RoleContextNavigation";
-import RoleContextNavigation from "@/components/ui/RoleContextNavigation";         
- // Try to parse the error response
-        
-        import Icon from "@/components/AppIcon";
+import RoleContextNavigation from "@/components/ui/RoleContextNavigation";
+// Try to parse the error response
+
+import Icon from "@/components/AppIcon";
 import Button from "@/components/ui/new/Button";
 import CategoryTree from "./components/CategoryTree";
 import ProductToolbar from "./components/ProductToolbar";
@@ -196,31 +196,32 @@ interface VendorData {
 
 class ProductApiService {
   private static baseUrl = "https://rsc-kl61.onrender.com/api/vendor";
-  
+
   // Your NEW token (but you'll need to get an even newer one since this expires Jan 23, 2025)
   private static async getAuthToken(): Promise<string> {
     // Check localStorage first
-    const storedToken = localStorage.getItem('vendorToken');
-    
-    if (storedToken && storedToken !== 'null') {
+    const storedToken = localStorage.getItem("vendorToken");
+
+    if (storedToken && storedToken !== "null") {
       try {
-        const tokenPayload = JSON.parse(atob(storedToken.split('.')[1]));
+        const tokenPayload = JSON.parse(atob(storedToken.split(".")[1]));
         const currentTime = Math.floor(Date.now() / 1000);
-        
+
         if (tokenPayload.exp && tokenPayload.exp > currentTime) {
-          console.log('Using stored token');
+          console.log("Using stored token");
           return storedToken;
         }
       } catch (e) {
-        console.log('Invalid stored token');
+        console.log("Invalid stored token");
       }
     }
-    
+
     // Use your NEW token as fallback (but this will also expire)
-    const newToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc1NTg0OTUwMCwianRpIjoiYWNkZmYzNjUtNGVhZC00NDgzLWE3ZjgtZTlkYzk1NTIzNzRhIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6eyJpZCI6Miwicm9sZSI6InZlbmRvciJ9LCJuYmYiOjE3NTU4NDk1MDAsImNzcmYiOiJlZmNjNjczZS1mMTdkLTQ5NmMtOWY5Yi1hYjg1NjExYTE4YjEiLCJleHAiOjE3NTU5MzU5MDB9.kBBHDyU8cLXc-A-XJR3CJoi7t9-Bs4YDdaBwuInJFjg";
-    
+    const newToken =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc1NTg0OTUwMCwianRpIjoiYWNkZmYzNjUtNGVhZC00NDgzLWE3ZjgtZTlkYzk1NTIzNzRhIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6eyJpZCI6Miwicm9sZSI6InZlbmRvciJ9LCJuYmYiOjE3NTU4NDk1MDAsImNzcmYiOiJlZmNjNjczZS1mMTdkLTQ5NmMtOWY5Yi1hYjg1NjExYTE4YjEiLCJleHAiOjE3NTU5MzU5MDB9.kBBHDyU8cLXc-A-XJR3CJoi7t9-Bs4YDdaBwuInJFjg";
+
     // Store it for future use
-    localStorage.setItem('authToken', newToken);
+    localStorage.setItem("authToken", newToken);
     return newToken;
   }
 
@@ -235,28 +236,32 @@ class ProductApiService {
       const config: RequestInit = {
         ...options,
         headers: {
-          'accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
           ...options.headers,
         },
       };
 
       console.log(`Making request to: ${this.baseUrl}${endpoint}`);
-      console.log('Headers:', config.headers);
+      console.log("Headers:", config.headers);
 
       const response = await fetch(`${this.baseUrl}${endpoint}`, config);
-      
+
       console.log(`Response status: ${response.status}`);
-      
+
       if (response.status === 401) {
-        console.error('Authentication failed - token might be expired');
-        localStorage.removeItem('authToken');
-        throw new Error('Authentication failed. Your session has expired. Please log in again.');
+        console.error("Authentication failed - token might be expired");
+        localStorage.removeItem("authToken");
+        throw new Error(
+          "Authentication failed. Your session has expired. Please log in again."
+        );
       }
-      
+
       if (response.status === 403) {
-        throw new Error('Access denied. You do not have permission for this action.');
+        throw new Error(
+          "Access denied. You do not have permission for this action."
+        );
       }
 
       if (!response.ok) {
@@ -272,21 +277,23 @@ class ProductApiService {
 
       return response;
     } catch (error) {
-      console.error('API Request failed:', error);
-      
+      console.error("API Request failed:", error);
+
       // Handle network errors specifically
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new Error('Network error. Please check your internet connection and try again.');
+      if (error instanceof TypeError && error.message.includes("fetch")) {
+        throw new Error(
+          "Network error. Please check your internet connection and try again."
+        );
       }
-      
+
       throw error;
     }
   }
 
   static async addProduct(productData: AddProductRequest): Promise<any> {
-    console.log('Adding product:', productData);
-    const response = await this.request('/add-product', {
-      method: 'POST',
+    console.log("Adding product:", productData);
+    const response = await this.request("/add-product", {
+      method: "POST",
       body: JSON.stringify(productData),
     });
     return response.json();
@@ -298,16 +305,16 @@ class ProductApiService {
   ): Promise<any> {
     console.log(`Editing product ${productId}:`, productData);
     const response = await this.request(`/edit-product/${productId}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(productData),
     });
     return response.json();
   }
 
   static async getMyProducts(): Promise<any> {
-    console.log('Fetching vendor products...');
-    const response = await this.request('/my-products', {
-      method: 'GET',
+    console.log("Fetching vendor products...");
+    const response = await this.request("/my-products", {
+      method: "GET",
     });
     return response.json();
   }
@@ -329,29 +336,32 @@ class ProductApiService {
   // Method to manually login and get a fresh token
   static async login(email: string, password: string): Promise<string> {
     try {
-      const response = await fetch('https://rsc-kl61.onrender.com/api/vendor/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'accept': 'application/json'
-        },
-        body: JSON.stringify({ email, password })
-      });
+      const response = await fetch(
+        "https://rsc-kl61.onrender.com/api/vendor/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            accept: "application/json",
+          },
+          body: JSON.stringify({ email, password }),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Login failed');
+        throw new Error(errorData.message || "Login failed");
       }
 
       const data = await response.json();
       if (data.access_token) {
-        localStorage.setItem('authToken', data.access_token);
+        localStorage.setItem("authToken", data.access_token);
         return data.access_token;
       } else {
-        throw new Error('No access token received');
+        throw new Error("No access token received");
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
       throw error;
     }
   }
@@ -387,47 +397,51 @@ const ProductManagement: React.FC = () => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
 
-  const updateToast = (id: string, updates: Partial<Omit<Toast, "id">>): void => {
+  const updateToast = (
+    id: string,
+    updates: Partial<Omit<Toast, "id">>
+  ): void => {
     setToasts((prev) =>
       prev.map((toast) => (toast.id === id ? { ...toast, ...updates } : toast))
     );
   };
 
-useEffect(() => {
-  const fetchVendorProducts = async () => {
-    setLoading(true);
-    try {
-      const data = await ProductApiService.getMyProducts();
-      console.log("Parsed JSON:", data);
+  useEffect(() => {
+    const fetchVendorProducts = async () => {
+      setLoading(true);
+      try {
+        const data = await ProductApiService.getMyProducts();
+        console.log("Parsed JSON:", data);
 
-      if (data.products) {
-        const formattedProducts: Product[] = data.products.map((product: any) => ({
-          id: product.id || product._id,
-          name: product.product_name,
-          image: product.images?.[0] || "https://via.placeholder.com/150",
-          category: product.category,
-          sku: product.sku || `SKU-${product.id}`,
-          price: product.product_price,
-          stock: product.stock || 0,
-          status: product.status || "active",
-          createdAt: product.createdAt || new Date().toISOString(),
-          views: product.views || 0,
-          description: product.description,
-        }));
-        setProducts(formattedProducts);
-      } else {
-        throw new Error(data.message || "Unexpected response format");
+        if (data.products) {
+          const formattedProducts: Product[] = data.products.map(
+            (product: any) => ({
+              id: product.id || product._id,
+              name: product.product_name,
+              image: product.images?.[0] || "https://via.placeholder.com/150",
+              category: product.category,
+              sku: product.sku || `SKU-${product.id}`,
+              price: product.product_price,
+              stock: product.stock || 0,
+              status: product.status || "active",
+              createdAt: product.createdAt || new Date().toISOString(),
+              views: product.views || 0,
+              description: product.description,
+            })
+          );
+          setProducts(formattedProducts);
+        } else {
+          throw new Error(data.message || "Unexpected response format");
+        }
+      } catch (err) {
+        console.error("Error fetching vendor products:", err);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("Error fetching vendor products:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  fetchVendorProducts();
-}, []);
-
+    fetchVendorProducts();
+  }, []);
 
   useEffect(() => {
     let filtered = [...products];
@@ -460,7 +474,9 @@ useEffect(() => {
     isSelected: boolean
   ): void => {
     setSelectedProducts((prev) =>
-      isSelected ? [...prev, Number(productId)] : prev.filter((id) => id !== Number(productId))
+      isSelected
+        ? [...prev, Number(productId)]
+        : prev.filter((id) => id !== Number(productId))
     );
   };
 
@@ -551,13 +567,13 @@ useEffect(() => {
   };
 
   const handleQuickEdit = (
-    productId: number | string,
-    field: keyof Product,
+    productId: string,
+    field: string,
     value: string | number
   ): void => {
     setProducts((prev) =>
       prev.map((product) => {
-        if (product.id === Number(productId)) {
+        if (String(product.id) === productId) {
           const isNumericField = [
             "price",
             "stock",
@@ -566,6 +582,7 @@ useEffect(() => {
             "cost",
             "weight",
           ].includes(field);
+
           const finalValue = isNumericField ? Number(value) : value;
           return { ...product, [field]: finalValue };
         }
@@ -578,7 +595,7 @@ useEffect(() => {
   const transformFormDataToApiRequest = async (
     formData: ProductFormData
   ): Promise<AddProductRequest> => {
-    console.log('Original Form Data:', formData);
+    console.log("Original Form Data:", formData);
 
     // Convert image files to base64
     const imagePromises = formData.images.map(async (img) => {
@@ -590,7 +607,7 @@ useEffect(() => {
     });
 
     const images = await Promise.all(imagePromises);
-    console.log('Processed Images:', images.length);
+    console.log("Processed Images:", images.length);
 
     // Format the data according to API expectations
     const apiData: AddProductRequest = {
@@ -603,7 +620,7 @@ useEffect(() => {
       images: images,
     };
 
-    console.log('Transformed API Data:', apiData);
+    console.log("Transformed API Data:", apiData);
     return apiData;
   };
 
@@ -874,9 +891,15 @@ useEffect(() => {
                     <div className="w-full h-64 flex items-center justify-center">
                       <div className="flex flex-col items-center space-y-4">
                         <div className="animate-spin">
-                          <Icon name="Loader2" size={40} className="text-primary" />
+                          <Icon
+                            name="Loader2"
+                            size={40}
+                            className="text-primary"
+                          />
                         </div>
-                        <p className="text-muted-foreground">Loading products...</p>
+                        <p className="text-muted-foreground">
+                          Loading products...
+                        </p>
                       </div>
                     </div>
                   ) : viewMode === "table" ? (
