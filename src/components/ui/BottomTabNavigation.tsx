@@ -221,7 +221,7 @@ const BottomTabNavigation: React.FC = () => {
                                     onClick={() => handleTabPress(item.path, item.label)}
                                     className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
                                         isCreateButton
-                                            ? 'bg-primary text-white hover:bg-primary/90 font-medium'
+                                            ? 'bg-[#001d3b] text-white hover:bg-primary/90 font-medium'
                                             : isActive
                                                 ? 'text-primary bg-primary-50 font-medium' 
                                                 : 'text-text-secondary hover:text-text-primary hover:bg-surface-secondary'

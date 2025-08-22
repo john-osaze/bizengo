@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import Image from "next/image";
+
 import Icon from "@/components/AppIcon";
 import {
   Search,
@@ -179,7 +181,7 @@ const Homepage: React.FC = () => {
                   Advanced
                 </button>
 
-                <button className="bg-[#001d3b] text-white px-8 py-3 rounded-md hover:bg-orange-600 transition-colors font-medium">
+                <button className="bg-orange-500 text-white px-8 py-3 rounded-md hover:bg-orange-600 transition-colors font-medium">
                   Search
                 </button>
               </div>
@@ -334,32 +336,12 @@ const Homepage: React.FC = () => {
           {/* Hero Illustration */}
           <div className="relative hidden md:block">
             <div className="w-80 h-80 relative">
-              {/* Location Pin */}
-              <div className="absolute top-8 right-12 bg-orange-500 rounded-full p-3 shadow-lg">
-                <ShoppingBag className="w-6 h-6 text-white" />
-              </div>
-
-              {/* Store Front */}
-              <div className="absolute bottom-16 right-8 bg-white rounded-lg p-4 shadow-xl w-32 h-24">
-                <div className="bg-orange-500 w-full h-2 rounded-t-lg mb-2"></div>
-                <div className="flex space-x-1">
-                  <div className="bg-blue-200 w-8 h-8 rounded"></div>
-                  <div className="bg-orange-200 w-8 h-8 rounded"></div>
-                </div>
-              </div>
-
-              {/* People */}
-              <div className="absolute bottom-8 left-8">
-                <div className="flex space-x-4">
-                  <div className="w-12 h-16 bg-orange-400 rounded-t-full"></div>
-                  <div className="w-12 h-16 bg-blue-600 rounded-t-full"></div>
-                </div>
-              </div>
-
-              {/* Floating Elements */}
-              <div className="absolute top-4 left-4 w-4 h-4 bg-orange-400 rounded"></div>
-              <div className="absolute top-12 right-4 w-3 h-3 bg-orange-300 rounded"></div>
-              <div className="absolute bottom-4 right-20 w-6 h-6 bg-orange-500 rounded"></div>
+              <Image
+                src="https://sdmntpritalynorth.oaiusercontent.com/files/00000000-daf0-6246-b9f8-31e1b13d11e7/raw?se=2025-08-22T20%3A47%3A55Z&sp=r&sv=2024-08-04&sr=b&scid=98b42457-1b94-5c68-9b90-fd28bb530c2e&skoid=6658dbdd-f305-4d30-8f6b-d62218202cb9&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-08-22T19%3A28%3A37Z&ske=2025-08-23T19%3A28%3A37Z&sks=b&skv=2024-08-04&sig=m0OL%2BglHDIdVprt22F9%2B250AI/JOp3/7pVgUxO4MWdo%3D"
+                alt="Business illustration"
+                fill={true}
+                className="rounded-xl object-contain"
+              />
             </div>
           </div>
         </div>
@@ -375,7 +357,7 @@ const Homepage: React.FC = () => {
                 onClick={() => setActiveTab(tab)}
                 className={`text-[10px] sm:text-[12px] md:text-[14px] lg:text-[16px] font-medium transition-colors border-b-2 pb-2 ${
                   activeTab === tab
-                    ? "text-white border-white"
+                    ? "text-white border-[#001d3b]"
                     : "text-white border-transparent hover:text-white"
                 }`}
               >
