@@ -50,31 +50,34 @@ const Header: React.FC = () => {
         const token = sessionStorage.getItem("RSToken");
         if (token) {
           setIsAuthenticated(true);
-          
+
           const response = await fetch(
             "https://rsc-kl61.onrender.com/api/user/profile",
             {
               headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
               },
             }
           );
 
           if (response.ok) {
             const data = await response.json();
-            if (data.status === 'success' && data.user) {
+            if (data.status === "success" && data.user) {
               setUserProfile({
                 name: data.user.fullname || data.user.email,
                 email: data.user.email,
-                avatar: data.user.avatar
+                avatar: data.user.avatar,
               });
               // Store the complete user data
-              sessionStorage.setItem('RSUser', JSON.stringify(data.user));
+              sessionStorage.setItem("RSUser", JSON.stringify(data.user));
             }
           } else {
-            console.error("Failed to fetch user profile:", await response.text());
+            console.error(
+              "Failed to fetch user profile:",
+              await response.text()
+            );
             // If profile fetch fails, clear auth
             sessionStorage.removeItem("RSToken");
             sessionStorage.removeItem("RSUser");
@@ -90,15 +93,15 @@ const Header: React.FC = () => {
     checkAuth();
   }, []);
 
-const [isVendorAuthenticated, setIsVendorAuthenticated] = useState(false);
+  const [isVendorAuthenticated, setIsVendorAuthenticated] = useState(false);
 
-useEffect(() => {
-  // Check vendor token in localStorage
-  const vendorToken = localStorage.getItem("vendorToken");
-  if (vendorToken) {
-    setIsVendorAuthenticated(true);
-  }
-}, []);
+  useEffect(() => {
+    // Check vendor token in localStorage
+    const vendorToken = localStorage.getItem("vendorToken");
+    if (vendorToken) {
+      setIsVendorAuthenticated(true);
+    }
+  }, []);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedOption, setSelectedOption] = useState<OptionType>(null);
 
@@ -164,8 +167,6 @@ useEffect(() => {
     },
   ];
 
-  
-
   const getPageTitle = (): string => {
     switch (
       pathname // Use pathname
@@ -216,7 +217,7 @@ useEffect(() => {
   const showSearch = pathname !== "/create-listing";
 
   return (
-    <header className="sticky top-0 z-[200] bg-[#001d3b] border-b border-border">
+    <header className="sticky top-0 z-[200] bg-white border-b border-border">
       <div className="max-w-7xl mx-auto h-16 md:h-18 px-4 md:px-2 flex items-center justify-between">
         <div className="flex items-center space-x-4">
           {showBackButton ? (
@@ -235,7 +236,7 @@ useEffect(() => {
                 <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                   <Icon name="MapPin" size={18} className="text-white" />
                 </div>
-                <h1 className="text-lg md:text-xl font-heading font-semibold text-white">
+                <h1 className="text-lg md:text-xl font-heading font-semibold text-black">
                   {getPageTitle()}
                 </h1>
               </div>
@@ -273,45 +274,44 @@ useEffect(() => {
             {/* Desktop View: Hidden below sm breakpoint, displayed as flex above */}
             <div className="hidden sm:flex items-center gap-2 gap-x-6">
               {isAuthenticated || isVendorAuthenticated ? (
-    <div className="relative">
-      {/* If user logged in (customer or vendor) */}
-      <button
-        onClick={() => {
-          // logout clears both tokens
-          sessionStorage.removeItem("RSToken");
-          sessionStorage.removeItem("RSUser");
-          localStorage.removeItem("vendorToken");
-          setIsAuthenticated(false);
-          setIsVendorAuthenticated(false);
-          setUserProfile(null);
-          setIsProfileDropdownOpen(false);
-          router.push("/");
-        }}
-        className="flex items-center px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium"
-      >
-        <Icon name="LogOut" size={16} className="mr-2" />
-        Logout
-      </button>
-    </div>
-  ) : (
-    <>
-      <Link
-        href="/auth/login"
-        className="p-2 rounded-lg hover:bg-surface-secondary transition-colors duration-200 relative text-sm font-medium text-white"
-        aria-label="Login your account"
-      >
-        Login
-      </Link>
-      <button
-        onClick={openModal}
-        className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 bg-primary text-white hover:bg-primary/80 font-medium"
-        aria-label="Get Started"
-      >
-        Get Started
-      </button>
-    </>
-  )}
-
+                <div className="relative">
+                  {/* If user logged in (customer or vendor) */}
+                  <button
+                    onClick={() => {
+                      // logout clears both tokens
+                      sessionStorage.removeItem("RSToken");
+                      sessionStorage.removeItem("RSUser");
+                      localStorage.removeItem("vendorToken");
+                      setIsAuthenticated(false);
+                      setIsVendorAuthenticated(false);
+                      setUserProfile(null);
+                      setIsProfileDropdownOpen(false);
+                      router.push("/");
+                    }}
+                    className="flex items-center px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium"
+                  >
+                    <Icon name="LogOut" size={16} className="mr-2" />
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <Link
+                    href="/auth/login"
+                    className="p-2 rounded-lg hover:bg-surface-secondary transition-colors duration-200 relative text-sm font-medium text-black"
+                    aria-label="Login your account"
+                  >
+                    Login
+                  </Link>
+                  <button
+                    onClick={openModal}
+                    className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 bg-primary text-white hover:bg-primary/80 font-medium"
+                    aria-label="Get Started"
+                  >
+                    Get Started
+                  </button>
+                </>
+              )}
 
               {/* Modal Overlay */}
               {isModalOpen && (
@@ -436,7 +436,7 @@ useEffect(() => {
                 <Icon
                   name="ShoppingCart"
                   size={20}
-                  className="text-text-primary text-white "
+                  className="text-text-primary"
                 />
                 <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border-1 border-surface"></div>
               </button>

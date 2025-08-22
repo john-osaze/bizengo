@@ -397,30 +397,7 @@ useEffect(() => {
   const fetchVendorProducts = async () => {
     setLoading(true);
     try {
-      const token = await ProductApiService.getAuthToken();
-      if (!token) {
-        throw new Error("No vendor token found. Please log in again.");
-      }
-
-      const response = await fetch('https://rsc-kl61.onrender.com/api/vendor/my-products', {
-        headers: {
-          'accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      console.log("RAW response status:", response.status);
-      const text = await response.text();
-      console.log("RAW response body:", text);
-
-      let data: any;
-      try {
-        data = JSON.parse(text);
-      } catch (e) {
-        throw new Error("Failed to parse JSON. Body was: " + text);
-      }
-
+      const data = await ProductApiService.getMyProducts();
       console.log("Parsed JSON:", data);
 
       if (data.products) {
@@ -432,7 +409,7 @@ useEffect(() => {
           sku: product.sku || `SKU-${product.id}`,
           price: product.product_price,
           stock: product.stock || 0,
-          status: product.status || 'active',
+          status: product.status || "active",
           createdAt: product.createdAt || new Date().toISOString(),
           views: product.views || 0,
           description: product.description,
@@ -441,7 +418,6 @@ useEffect(() => {
       } else {
         throw new Error(data.message || "Unexpected response format");
       }
-
     } catch (err) {
       console.error("Error fetching vendor products:", err);
     } finally {
@@ -451,6 +427,7 @@ useEffect(() => {
 
   fetchVendorProducts();
 }, []);
+
 
   useEffect(() => {
     let filtered = [...products];
