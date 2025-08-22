@@ -166,41 +166,91 @@ const VendorStorefront: React.FC = () => {
 		loadStorefrontData();
 	}, [router]);
 
-	const loadStorefrontData = async () => {
-		setLoading(true);
-		try {
-			// Simulate API call
-			await new Promise(resolve => setTimeout(resolve, 1000));
-			setStorefrontData(mockStorefrontData);
-		} catch (error) {
-			console.error('Failed to load storefront data:', error);
-		} finally {
-			setLoading(false);
-		}
-	};
+const loadStorefrontData = async () => {
+  setLoading(true);
+  try {
+    const token = localStorage.getItem("vendorToken");
+    const res = await fetch("https://rsc-kl61.onrender.com/api/vendor/storefront", {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
-	const handleSaveStorefront = async (updatedData: Partial<StorefrontData>) => {
-		setSaving(true);
-		try {
-			// Simulate API call
-			await new Promise(resolve => setTimeout(resolve, 1500));
-			setStorefrontData(prev => prev ? ({
-				...prev,
-				...updatedData,
-				lastUpdated: new Date().toISOString()
-			}) : prev);
+    if (!res.ok) throw new Error("Failed to fetch storefront");
+    const data = await res.json();
 
-			// Show success message
-			if (navigator.vibrate) {
-				navigator.vibrate(50);
-			}
-		} catch (error) {
-			console.error('Failed to save storefront:', error);
-			alert('Failed to save changes. Please try again.');
-		} finally {
-			setSaving(false);
-		}
-	};
+    const sf = data.storefront;
+
+  setStorefrontData({
+  ...mockStorefrontData,
+  businessName: sf.business_name,
+  description: sf.description,
+  contact: {
+    email: sf.email,
+    phone: sf.phone,
+    address: `${sf.state}, ${sf.country}`,
+  },
+  slug: sf.business_name.toLowerCase().replace(/\s+/g, "-"),
+  gallery: data.products.flatMap((p: any) => p.images) || [],
+  bannerImage: data.products[0]?.images?.[0] || "",
+  views: mockStorefrontData.views,
+  clicks: mockStorefrontData.clicks,
+  orders: mockStorefrontData.orders,
+});
+
+
+  } catch (err) {
+    console.error("Error loading storefront:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
+
+const handleSaveStorefront = async (updatedData: Partial<StorefrontData>) => {
+  setSaving(true);
+  try {
+    const token = localStorage.getItem("vendorToken");
+
+    const payload = {
+      business_name: updatedData.businessName || storefrontData?.businessName,
+      description: updatedData.description || storefrontData?.description,
+      business_banner: updatedData.gallery || storefrontData?.gallery,
+    };
+
+    const res = await fetch("https://rsc-kl61.onrender.com/api/vendor/storefront", {
+      method: "PUT",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) throw new Error("Failed to update storefront");
+    const data = await res.json();
+
+    setStorefrontData(prev => prev ? ({
+      ...prev,
+      businessName: data.business_name,
+      description: data.description,
+      gallery: data.business_banner || prev.gallery,
+      bannerImage: data.business_banner?.[0] || prev.bannerImage,
+      lastUpdated: new Date().toISOString(),
+    }) : prev);
+
+  } catch (error) {
+    console.error("Failed to save storefront:", error);
+    alert("Failed to save changes. Please try again.");
+  } finally {
+    setSaving(false);
+  }
+};
+
+
 
 	const handlePublishStorefront = async () => {
 		setSaving(true);
