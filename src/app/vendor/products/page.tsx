@@ -1,6 +1,10 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from "react";
+// Ensure we're on the client side
+if (typeof window === 'undefined') {
+  throw new Error('This page can only be rendered on the client side');
+}
 import { useRouter } from "next/navigation";
 import { RoleProvider } from "@/components/ui/RoleContextNavigation";
 import RoleContextNavigation from "@/components/ui/RoleContextNavigation";
@@ -199,8 +203,12 @@ class ProductApiService {
 
   // Your NEW token (but you'll need to get an even newer one since this expires Jan 23, 2025)
   private static async getAuthToken(): Promise<string> {
+    if (typeof window === 'undefined') {
+      return '';  // Return empty string on server-side
+    }
+
     // Check localStorage first
-    const storedToken = localStorage.getItem("vendorToken");
+    const storedToken = window.localStorage.getItem("vendorToken");
 
     if (storedToken && storedToken !== "null") {
       try {
@@ -221,7 +229,9 @@ class ProductApiService {
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc1NTg0OTUwMCwianRpIjoiYWNkZmYzNjUtNGVhZC00NDgzLWE3ZjgtZTlkYzk1NTIzNzRhIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6eyJpZCI6Miwicm9sZSI6InZlbmRvciJ9LCJuYmYiOjE3NTU4NDk1MDAsImNzcmYiOiJlZmNjNjczZS1mMTdkLTQ5NmMtOWY5Yi1hYjg1NjExYTE4YjEiLCJleHAiOjE3NTU5MzU5MDB9.kBBHDyU8cLXc-A-XJR3CJoi7t9-Bs4YDdaBwuInJFjg";
 
     // Store it for future use
-    localStorage.setItem("authToken", newToken);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem("authToken", newToken);
+    }
     return newToken;
   }
 
@@ -355,7 +365,9 @@ class ProductApiService {
 
       const data = await response.json();
       if (data.access_token) {
-        localStorage.setItem("authToken", data.access_token);
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem("authToken", data.access_token);
+        }
         return data.access_token;
       } else {
         throw new Error("No access token received");
@@ -537,7 +549,7 @@ const ProductManagement: React.FC = () => {
   };
 
   const handleDeleteProduct = (productId: number | string): void => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
+    if (typeof window !== 'undefined' && window.confirm("Are you sure you want to delete this product?")) {
       // Show loading toast for delete action
       const loadingToastId = addToast({
         type: "loading",
