@@ -23,12 +23,14 @@ interface Product {
 	name: string;
 	description: string;
 	price: number;
-	originalPrice: number | null;
 	image: string;
 	stock: number;
-	rating: number;
-	reviewCount: number;
-	discount: number | null;
+	status?: string;
+	category?: string;
+	originalPrice?: number | null;
+	rating?: number;
+	reviewCount?: number;
+	discount?: number | null;
 }
 
 interface ProductGridProps {

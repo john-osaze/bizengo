@@ -337,9 +337,10 @@ const Homepage: React.FC = () => {
           <div className="relative hidden md:block">
             <div className="w-80 h-80 relative">
               <Image
-                src="https://sdmntpritalynorth.oaiusercontent.com/files/00000000-daf0-6246-b9f8-31e1b13d11e7/raw?se=2025-08-22T20%3A47%3A55Z&sp=r&sv=2024-08-04&sr=b&scid=98b42457-1b94-5c68-9b90-fd28bb530c2e&skoid=6658dbdd-f305-4d30-8f6b-d62218202cb9&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-08-22T19%3A28%3A37Z&ske=2025-08-23T19%3A28%3A37Z&sks=b&skv=2024-08-04&sig=m0OL%2BglHDIdVprt22F9%2B250AI/JOp3/7pVgUxO4MWdo%3D"
+                src="/images/ChatGPT Image Aug 23, 2025, 03_23_55 PM.png"
                 alt="Business illustration"
-                fill={true}
+                width={320}
+                height={320}
                 className="rounded-xl object-contain"
               />
             </div>
