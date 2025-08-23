@@ -8,7 +8,6 @@ if (typeof window === 'undefined') {
 import { useRouter } from "next/navigation";
 import { RoleProvider } from "@/components/ui/RoleContextNavigation";
 import RoleContextNavigation from "@/components/ui/RoleContextNavigation";
-// Try to parse the error response
 
 import Icon from "@/components/AppIcon";
 import Button from "@/components/ui/new/Button";
@@ -18,6 +17,7 @@ import ProductTable from "./components/ProductTable";
 import ProductGrid from "./components/ProductGrid";
 import AddProductModal from "./components/AddProductModal";
 import StockAlerts from "./components/StockAlerts";
+import { ProductFormData, EditingProduct, ProductImage } from "./types";
 import VendorHeader from "../dashboard/components/VendorHeader";
 
 // Toast Notification Component
@@ -164,27 +164,7 @@ interface ApiErrorResponse {
   status?: string;
 }
 
-// Data type from the AddProductModal form
-interface ProductFormData {
-  name: string;
-  description: string;
-  category: string;
-  price: string;
-  comparePrice: string;
-  cost: string;
-  sku: string;
-  barcode: string;
-  stock: string;
-  lowStockThreshold: string;
-  weight: string;
-  dimensions: { length: string; width: string; height: string };
-  status: ProductStatus;
-  visibility: "visible" | "hidden";
-  seoTitle: string;
-  seoDescription: string;
-  tags: string[];
-  images: { id: number; url: string; alt: string; file: File }[];
-}
+// Using the ProductFormData type defined above
 
 interface VendorData {
   firstName: string;
@@ -636,9 +616,7 @@ const ProductManagement: React.FC = () => {
     return apiData;
   };
 
-  const handleSaveProduct = async (
-    formData: ProductFormData
-  ): Promise<void> => {
+  const handleSaveProduct: AddProductModalProps['onSave'] = async (formData) => {
     const isEditing = !!editingProduct;
     const actionText = isEditing ? "Updating" : "Adding";
     const successText = isEditing ? "updated" : "added";

@@ -4,72 +4,19 @@ import Image from "@/components/ui/AppImage";
 import Button from "@/components/ui/new/Button";
 import Input from "@/components/ui/new/Input";
 import Select from "@/components/ui/new/NewSelect";
+import { ProductFormData, EditingProduct, ProductImage, ProductDimensions } from "../types";
 
 // Props interface with loading and disabled states
 export interface AddProductModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (formData: ProductFormData) => void;
+  onSave: (formData: ProductFormData) => Promise<void>;
   editingProduct?: EditingProduct | null | any;
   loading?: boolean;
   disabled?: boolean;
 }
 
-// Type definitions
-interface ProductDimensions {
-  length: string;
-  width: string;
-  height: string;
-}
-
-interface ProductImage {
-  id: number;
-  file: File;
-  url: string;
-  alt: string;
-}
-
-interface ProductFormData {
-  name: string;
-  description: string;
-  category: string;
-  price: string;
-  comparePrice: string;
-  cost: string;
-  sku: string;
-  barcode: string;
-  stock: string;
-  lowStockThreshold: string;
-  weight: string;
-  dimensions: ProductDimensions;
-  status: "active" | "draft" | "inactive";
-  visibility: "visible" | "hidden";
-  seoTitle: string;
-  seoDescription: string;
-  tags: string[];
-  images: ProductImage[];
-}
-
-interface EditingProduct {
-  name?: string;
-  description?: string;
-  category?: string;
-  price?: string;
-  comparePrice?: string;
-  cost?: string;
-  sku?: string;
-  barcode?: string;
-  stock?: string;
-  lowStockThreshold?: string;
-  weight?: string;
-  dimensions?: ProductDimensions;
-  status?: "active" | "draft" | "inactive";
-  visibility?: "visible" | "hidden";
-  seoTitle?: string;
-  seoDescription?: string;
-  tags?: string[];
-  images?: ProductImage[];
-}
+// Using types imported from types.ts
 
 interface SelectOption {
   value: string;
