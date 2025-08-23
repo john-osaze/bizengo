@@ -950,6 +950,8 @@ const ProductManagement: React.FC = () => {
               }}
               onSave={handleSaveProduct}
               editingProduct={editingProduct}
+              loading={loading}
+              disabled={loading}
             />
 
             {showStockAlerts && (
