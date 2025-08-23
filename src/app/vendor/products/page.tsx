@@ -1,13 +1,11 @@
-'use client';
+"use client";
 
 import React, { useState, useEffect } from "react";
-// Ensure we're on the client side
-if (typeof window === 'undefined') {
-  throw new Error('This page can only be rendered on the client side');
-}
+
 import { useRouter } from "next/navigation";
 import { RoleProvider } from "@/components/ui/RoleContextNavigation";
 import RoleContextNavigation from "@/components/ui/RoleContextNavigation";
+// Try to parse the error response
 
 import Icon from "@/components/AppIcon";
 import Button from "@/components/ui/new/Button";
@@ -17,8 +15,7 @@ import ProductTable from "./components/ProductTable";
 import ProductGrid from "./components/ProductGrid";
 import AddProductModal from "./components/AddProductModal";
 import StockAlerts from "./components/StockAlerts";
-import { ProductFormData, EditingProduct, ProductImage } from "./types";
-import VendorHeader from "../dashboard/components/VendorHeader";
+// import VendorHeader from "../dashboard/components/VendorHeader";
 
 // Toast Notification Component
 interface Toast {
@@ -164,7 +161,27 @@ interface ApiErrorResponse {
   status?: string;
 }
 
-// Using the ProductFormData type defined above
+// Data type from the AddProductModal form
+interface ProductFormData {
+  name: string;
+  description: string;
+  category: string;
+  price: string;
+  comparePrice: string;
+  cost: string;
+  sku: string;
+  barcode: string;
+  stock: string;
+  lowStockThreshold: string;
+  weight: string;
+  dimensions: { length: string; width: string; height: string };
+  status: ProductStatus;
+  visibility: "visible" | "hidden";
+  seoTitle: string;
+  seoDescription: string;
+  tags: string[];
+  images: { id: number; url: string; alt: string; file: File }[];
+}
 
 interface VendorData {
   firstName: string;
@@ -183,8 +200,8 @@ class ProductApiService {
 
   // Your NEW token (but you'll need to get an even newer one since this expires Jan 23, 2025)
   private static async getAuthToken(): Promise<string> {
-    if (typeof window === 'undefined') {
-      return '';  // Return empty string on server-side
+    if (typeof window === "undefined") {
+      return ""; // Return empty string on server-side
     }
 
     // Check localStorage first
@@ -209,7 +226,7 @@ class ProductApiService {
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc1NTg0OTUwMCwianRpIjoiYWNkZmYzNjUtNGVhZC00NDgzLWE3ZjgtZTlkYzk1NTIzNzRhIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6eyJpZCI6Miwicm9sZSI6InZlbmRvciJ9LCJuYmYiOjE3NTU4NDk1MDAsImNzcmYiOiJlZmNjNjczZS1mMTdkLTQ5NmMtOWY5Yi1hYjg1NjExYTE4YjEiLCJleHAiOjE3NTU5MzU5MDB9.kBBHDyU8cLXc-A-XJR3CJoi7t9-Bs4YDdaBwuInJFjg";
 
     // Store it for future use
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       window.localStorage.setItem("authToken", newToken);
     }
     return newToken;
@@ -345,7 +362,7 @@ class ProductApiService {
 
       const data = await response.json();
       if (data.access_token) {
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           window.localStorage.setItem("authToken", data.access_token);
         }
         return data.access_token;
@@ -529,7 +546,10 @@ const ProductManagement: React.FC = () => {
   };
 
   const handleDeleteProduct = (productId: number | string): void => {
-    if (typeof window !== 'undefined' && window.confirm("Are you sure you want to delete this product?")) {
+    if (
+      typeof window !== "undefined" &&
+      window.confirm("Are you sure you want to delete this product?")
+    ) {
       // Show loading toast for delete action
       const loadingToastId = addToast({
         type: "loading",
@@ -616,7 +636,9 @@ const ProductManagement: React.FC = () => {
     return apiData;
   };
 
-  const handleSaveProduct: AddProductModalProps['onSave'] = async (formData) => {
+  const handleSaveProduct = async (
+    formData: ProductFormData
+  ): Promise<void> => {
     const isEditing = !!editingProduct;
     const actionText = isEditing ? "Updating" : "Adding";
     const successText = isEditing ? "updated" : "added";
@@ -928,8 +950,6 @@ const ProductManagement: React.FC = () => {
               }}
               onSave={handleSaveProduct}
               editingProduct={editingProduct}
-              loading={loading}
-              disabled={loading}
             />
 
             {showStockAlerts && (
