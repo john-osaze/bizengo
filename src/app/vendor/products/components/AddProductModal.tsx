@@ -77,13 +77,17 @@ interface AddProductModalProps {
     onClose: () => void;
     onSave: (formData: ProductFormData) => void;
     editingProduct?: EditingProduct | null | any;
+    loading?: boolean;
+    disabled?: boolean;
 }
 
 const AddProductModal: React.FC<AddProductModalProps> = ({
     isOpen,
     onClose,
     onSave,
-    editingProduct = null
+    editingProduct = null,
+    loading = false,
+    disabled = false
 }) => {
     const [activeTab, setActiveTab] = useState<string>('basic');
     const [formData, setFormData] = useState<ProductFormData>({
@@ -238,7 +242,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
                 </div>
 
                 {/* Content */}
-                <form onSubmit={handleSubmit} className="flex flex-col h-full">
+                <form onSubmit={handleSubmit} className={`flex flex-col h-full ${(loading || disabled) ? 'opacity-70 pointer-events-none' : ''}`}>
                     <div className="flex-1 overflow-y-auto p-6">
                         {activeTab === 'basic' && (
                             <div className="space-y-6">
@@ -539,11 +543,20 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
 
                     {/* Footer */}
                     <div className="flex items-center justify-end space-x-3 p-6 border-t border-border">
-                        <Button type="button" variant="outline" onClick={onClose}>
+                        <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={onClose}
+                            disabled={loading || disabled}
+                        >
                             Cancel
                         </Button>
-                        <Button type="submit" variant="default">
-                            {editingProduct ? 'Update Product' : 'Save Product'}
+                        <Button 
+                            type="submit" 
+                            variant="default"
+                            disabled={loading || disabled}
+                        >
+                            {loading ? 'Saving...' : editingProduct ? 'Update Product' : 'Save Product'}
                         </Button>
                     </div>
                 </form>
