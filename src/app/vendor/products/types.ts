@@ -24,8 +24,8 @@ export type ProductFormData = {
   lowStockThreshold: string;
   weight: string;
   dimensions: ProductDimensions;
-  status: 'active' | 'draft' | 'inactive';
-  visibility: 'visible' | 'hidden';
+  status: "active" | "draft" | "inactive";
+  visibility: "visible" | "hidden";
   seoTitle: string;
   seoDescription: string;
   tags: string[];
