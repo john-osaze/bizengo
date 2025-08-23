@@ -962,3 +962,6 @@
 // };
 
 // export default ProductManagement;
+export default function ProductManagement() {
+  return <div>Products page</div>;
+}
