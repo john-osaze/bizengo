@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-
+// import AddProductModal from "./components/AddProductModal";
 import { useRouter } from "next/navigation";
 import { RoleProvider } from "@/components/ui/RoleContextNavigation";
 import RoleContextNavigation from "@/components/ui/RoleContextNavigation";
@@ -9,13 +9,12 @@ import RoleContextNavigation from "@/components/ui/RoleContextNavigation";
 
 import Icon from "@/components/AppIcon";
 import Button from "@/components/ui/new/Button";
-import CategoryTree from "./components/CategoryTree";
-import ProductToolbar from "./components/ProductToolbar";
-import ProductTable from "./components/ProductTable";
-import ProductGrid from "./components/ProductGrid";
-import AddProductModal from "./components/AddProductModal";
-import StockAlerts from "./components/StockAlerts";
-// import VendorHeader from "../dashboard/components/VendorHeader";
+import CategoryTree from "@/app/vendor/products/components/CategoryTree";
+import ProductToolbar from "@/app/vendor/products/components/ProductToolbar";
+import ProductTable from "@/app/vendor/products/components/ProductTable";
+import ProductGrid from "@/app/vendor/products/components/ProductGrid";
+import AddProductModal from "@/app/vendor/products/components/AddProductModal";
+import StockAlerts from "@/app/vendor/products/components/StockAlerts";
 
 // Toast Notification Component
 interface Toast {
