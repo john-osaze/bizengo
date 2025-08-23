@@ -25,6 +25,10 @@ interface UserProfileData {
     bio: string;
 }
 
+interface SettingsProps {
+    userProfile?: UserProfileData;
+}
+
 interface LocationData {
     address: string;
     city: string;
@@ -88,8 +92,8 @@ const mockUserProfile: UserProfileData = {
     bio: "Tech enthusiast and collector. Always looking for unique gadgets and vintage electronics."
 };
 
-const Settings = () => {
-    const [userProfile] = useState<UserProfileData>(mockUserProfile);
+const Settings: React.FC<SettingsProps> = ({ userProfile: propUserProfile }) => {
+    const [userProfile] = useState<UserProfileData>(propUserProfile || mockUserProfile);
     const [isLoadingLocation, setIsLoadingLocation] = useState(false);
     const [locationError, setLocationError] = useState<string | null>(null);
     
