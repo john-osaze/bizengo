@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import React, { useState, useId } from "react";
 import { ChevronDown, Check, Search, X } from "lucide-react";
@@ -13,7 +13,8 @@ interface Option {
   disabled?: boolean;
 }
 
-interface SelectProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'value'> {
+interface SelectProps
+  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "value"> {
   className?: string;
   options?: Option[];
   value?: string | number | (string | number)[];
@@ -35,50 +36,58 @@ interface SelectProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>
 }
 
 const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
-  ({
-    className,
-    options = [],
-    value,
-    defaultValue,
-    placeholder = "Select an option",
-    multiple = false,
-    disabled = false,
-    required = false,
-    label,
-    description,
-    error,
-    searchable = false,
-    clearable = false,
-    loading = false,
-    id,
-    name,
-    onChange,
-    onOpenChange,
-    ...props
-  }, ref) => {
+  (
+    {
+      className,
+      options = [],
+      value,
+      defaultValue,
+      placeholder = "Select an option",
+      multiple = false,
+      disabled = false,
+      required = false,
+      label,
+      description,
+      error,
+      searchable = false,
+      clearable = false,
+      loading = false,
+      id,
+      name,
+      onChange,
+      onOpenChange,
+      ...props
+    },
+    ref
+  ) => {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const reactId = useId();
     const selectId = id || reactId;
 
-    const filteredOptions = searchable && searchTerm
-      ? options.filter(option =>
-          option.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          option.value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      : options;
+    const filteredOptions =
+      searchable && searchTerm
+        ? options.filter(
+            (option) =>
+              option.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              option.value
+                .toString()
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase())
+          )
+        : options;
 
     const getSelectedDisplay = () => {
       if (!value) return placeholder;
 
       if (multiple && Array.isArray(value)) {
-        const selected = options.filter(opt => value.includes(opt.value));
+        const selected = options.filter((opt) => value.includes(opt.value));
         return selected.length === 1
           ? selected[0].label
           : `${selected.length} items selected`;
       }
 
-      const selected = options.find(opt => opt.value === value);
+      const selected = options.find((opt) => opt.value === value);
       return selected ? selected.label : placeholder;
     };
 
@@ -94,7 +103,7 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
     const handleOptionSelect = (option: Option) => {
       if (multiple && Array.isArray(value)) {
         const updated = value.includes(option.value)
-          ? value.filter(v => v !== option.value)
+          ? value.filter((v) => v !== option.value)
           : [...value, option.value];
         onChange?.(updated);
       } else {
@@ -106,7 +115,7 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
 
     const handleClear = (e: React.MouseEvent) => {
       e.stopPropagation();
-      onChange?.(multiple ? [] : '');
+      onChange?.(multiple ? [] : "");
     };
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -120,14 +129,30 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
       return value === optionValue;
     };
 
-    const hasValue = multiple ? (value as any[])?.length > 0 : value !== undefined && value !== '';
+    const hasValue = multiple
+      ? (value as any[])?.length > 0
+      : value !== undefined && value !== "";
+
+    // Helper function to get the correct value for the hidden select element
+    const getHiddenSelectValue = () => {
+      if (multiple) {
+        // Convert array to string array for HTML select multiple
+        return Array.isArray(value) ? value.map((v) => v.toString()) : [];
+      } else {
+        // Convert single value to string for HTML select
+        return value !== undefined ? value.toString() : "";
+      }
+    };
 
     return (
       <div className={cn("relative", className)}>
         {label && (
           <label
             htmlFor={selectId}
-            className={cn("text-sm font-medium mb-2 block", error ? "text-destructive" : "text-foreground")}
+            className={cn(
+              "text-sm font-medium mb-2 block",
+              error ? "text-destructive" : "text-foreground"
+            )}
           >
             {label}
             {required && <span className="text-destructive ml-1">*</span>}
@@ -154,22 +179,44 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
             <div className="flex items-center gap-1">
               {loading && (
                 <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
                 </svg>
               )}
               {clearable && hasValue && !loading && (
-                <Button variant="ghost" size="icon" className="h-4 w-4" onClick={handleClear}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-4 w-4"
+                  onClick={handleClear}
+                >
                   <X className="h-3 w-3" />
                 </Button>
               )}
-              <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 transition-transform",
+                  isOpen && "rotate-180"
+                )}
+              />
             </div>
           </button>
 
           <select
             name={name}
-            value={multiple ? (value as (string | number)[]) : (value as string | number)}
+            value={getHiddenSelectValue()}
             onChange={() => {}}
             className="sr-only"
             tabIndex={-1}
@@ -177,8 +224,8 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
             required={required}
           >
             <option value="">Select...</option>
-            {options.map(option => (
-              <option key={option.value} value={option.value}>
+            {options.map((option) => (
+              <option key={option.value} value={option.value.toString()}>
                 {option.label}
               </option>
             ))}
@@ -205,18 +252,23 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
                     {searchTerm ? "No options found" : "No options available"}
                   </div>
                 ) : (
-                  filteredOptions.map(option => (
+                  filteredOptions.map((option) => (
                     <div
                       key={option.value}
                       className={cn(
                         "relative flex cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
-                        isSelected(option.value) && "bg-primary text-primary-foreground",
+                        isSelected(option.value) &&
+                          "bg-primary text-primary-foreground",
                         option.disabled && "pointer-events-none opacity-50"
                       )}
-                      onClick={() => !option.disabled && handleOptionSelect(option)}
+                      onClick={() =>
+                        !option.disabled && handleOptionSelect(option)
+                      }
                     >
                       <span className="flex-1">{option.label}</span>
-                      {multiple && isSelected(option.value) && <Check className="h-4 w-4" />}
+                      {multiple && isSelected(option.value) && (
+                        <Check className="h-4 w-4" />
+                      )}
                       {option.description && (
                         <span className="text-xs text-muted-foreground ml-2">
                           {option.description}
@@ -233,9 +285,7 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
         {description && !error && (
           <p className="text-sm text-muted-foreground mt-1">{description}</p>
         )}
-        {error && (
-          <p className="text-sm text-destructive mt-1">{error}</p>
-        )}
+        {error && <p className="text-sm text-destructive mt-1">{error}</p>}
       </div>
     );
   }
