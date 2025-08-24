@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Icon from '@/components/AppIcon';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Icon from "@/components/AppIcon";
 
 interface VendorData {
   business_name?: string;
@@ -14,22 +14,28 @@ interface VendorData {
 
 interface VendorHeaderProps {
   onLogout: () => void;
+  vendorData?: VendorData; // Add this line
 }
 
 const navigationItems = [
-  { label: 'Dashboard', path: '../dashboard', icon: 'LayoutDashboard' },
-  { label: 'Products', path: '../products', icon: 'Package' },
-  { label: 'Orders', path: '../orders', icon: 'ShoppingCart' },
-  { label: 'Storefront', path: '../storefront', icon: 'Store' },
-  { label: 'Analytics', path: '../analytics', icon: 'BarChart3' },
-  { label: 'Settings', path: '../settings', icon: 'Settings' },
+  { label: "Dashboard", path: "../dashboard", icon: "LayoutDashboard" },
+  { label: "Products", path: "../products", icon: "Package" },
+  { label: "Orders", path: "../orders", icon: "ShoppingCart" },
+  { label: "Storefront", path: "../storefront", icon: "Store" },
+  { label: "Analytics", path: "../analytics", icon: "BarChart3" },
+  { label: "Settings", path: "../settings", icon: "Settings" },
 ];
 
-const VendorHeader: React.FC<VendorHeaderProps> = ({ onLogout }) => {
+const VendorHeader: React.FC<VendorHeaderProps> = ({
+  onLogout,
+  vendorData: propVendorData,
+}) => {
   const router = useRouter();
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [pathname, setPathname] = useState<string>('');
-  const [vendorData, setVendorData] = useState<VendorData | null>(null);
+  const [pathname, setPathname] = useState<string>("");
+  const [vendorData, setVendorData] = useState<VendorData | null>(
+    propVendorData || null
+  );
 
   const handleNavigation = (path: string) => {
     router.push(path);
@@ -38,26 +44,32 @@ const VendorHeader: React.FC<VendorHeaderProps> = ({ onLogout }) => {
   useEffect(() => {
     setPathname(window.location.pathname);
 
-    const fetchProfile = async () => {
-      try {
-        const res = await fetch('https://rsc-kl61.onrender.com/api/user/profile', {
-          headers: {
-            accept: 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('vendorToken')}`,
-          },
-        });
+    // Only fetch if no vendor data was passed as prop
+    if (!propVendorData) {
+      const fetchProfile = async () => {
+        try {
+          const res = await fetch(
+            "https://rsc-kl61.onrender.com/api/user/profile",
+            {
+              headers: {
+                accept: "application/json",
+                Authorization: `Bearer ${localStorage.getItem("vendorToken")}`,
+              },
+            }
+          );
 
-        if (!res.ok) throw new Error('Failed to fetch profile');
+          if (!res.ok) throw new Error("Failed to fetch profile");
 
-        const data = await res.json();
-        setVendorData(data);
-      } catch (err) {
-        console.error('Error fetching vendor profile:', err);
-      }
-    };
+          const data = await res.json();
+          setVendorData(data);
+        } catch (err) {
+          console.error("Error fetching vendor profile:", err);
+        }
+      };
 
-    fetchProfile();
-  }, []);
+      fetchProfile();
+    }
+  }, [propVendorData]);
 
   return (
     <header className="bg-white border-b border-border sticky top-0 z-[5000]">
@@ -70,7 +82,7 @@ const VendorHeader: React.FC<VendorHeaderProps> = ({ onLogout }) => {
             </div>
             <div>
               <h1 className="font-heading font-semibold text-lg text-text-primary">
-                {vendorData?.business_name || 'My Store'}
+                {vendorData?.business_name || "My Store"}
               </h1>
               <p className="text-sm text-text-muted">Vendor Dashboard</p>
             </div>
@@ -85,9 +97,11 @@ const VendorHeader: React.FC<VendorHeaderProps> = ({ onLogout }) => {
                 className={`
                   flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium
                   transition-colors duration-200
-                  ${pathname === item.path
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-text-secondary hover:text-text-primary hover:bg-surface'}
+                  ${
+                    pathname === item.path
+                      ? "bg-primary text-primary-foreground"
+                      : "text-text-secondary hover:text-text-primary hover:bg-surface"
+                  }
                 `}
               >
                 <Icon name={item.icon as any} size={16} />
@@ -104,7 +118,7 @@ const VendorHeader: React.FC<VendorHeaderProps> = ({ onLogout }) => {
             >
               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                 <span className="text-white font-medium text-sm">
-                  {vendorData?.first_name?.charAt(0) || 'V'}
+                  {vendorData?.first_name?.charAt(0) || "V"}
                 </span>
               </div>
               <div className="hidden sm:block text-left">
@@ -117,7 +131,7 @@ const VendorHeader: React.FC<VendorHeaderProps> = ({ onLogout }) => {
                 name="ChevronDown"
                 size={16}
                 className={`text-text-muted transition-transform ${
-                  showUserMenu ? 'rotate-180' : ''
+                  showUserMenu ? "rotate-180" : ""
                 }`}
               />
             </button>
@@ -133,13 +147,13 @@ const VendorHeader: React.FC<VendorHeaderProps> = ({ onLogout }) => {
                   <div className="flex items-center mt-2">
                     <div
                       className={`w-2 h-2 rounded-full mr-2 ${
-                        vendorData?.isVerified ? 'bg-success' : 'bg-warning'
+                        vendorData?.isVerified ? "bg-success" : "bg-warning"
                       }`}
                     ></div>
                     <span className="text-xs text-text-muted">
                       {vendorData?.isVerified
-                        ? 'Verified'
-                        : 'Pending Verification'}
+                        ? "Verified"
+                        : "Pending Verification"}
                     </span>
                   </div>
                 </div>
@@ -147,7 +161,7 @@ const VendorHeader: React.FC<VendorHeaderProps> = ({ onLogout }) => {
                 <div className="p-2">
                   <button
                     onClick={() => {
-                      handleNavigation('../profile');
+                      handleNavigation("../profile");
                       setShowUserMenu(false);
                     }}
                     className="w-full flex items-center space-x-3 px-3 py-2 text-left rounded-lg hover:bg-surface transition-colors"
@@ -158,23 +172,33 @@ const VendorHeader: React.FC<VendorHeaderProps> = ({ onLogout }) => {
 
                   <button
                     onClick={() => {
-                      handleNavigation('../settings');
+                      handleNavigation("../settings");
                       setShowUserMenu(false);
                     }}
                     className="w-full flex items-center space-x-3 px-3 py-2 text-left rounded-lg hover:bg-surface transition-colors"
                   >
-                    <Icon name="Settings" size={16} className="text-text-muted" />
-                    <span className="text-sm text-text-secondary">Settings</span>
+                    <Icon
+                      name="Settings"
+                      size={16}
+                      className="text-text-muted"
+                    />
+                    <span className="text-sm text-text-secondary">
+                      Settings
+                    </span>
                   </button>
 
                   <button
                     onClick={() => {
-                      router.push('/');
+                      router.push("/");
                       setShowUserMenu(false);
                     }}
                     className="w-full flex items-center space-x-3 px-3 py-2 text-left rounded-lg hover:bg-surface transition-colors"
                   >
-                    <Icon name="ExternalLink" size={16} className="text-text-muted" />
+                    <Icon
+                      name="ExternalLink"
+                      size={16}
+                      className="text-text-muted"
+                    />
                     <span className="text-sm text-text-secondary">
                       View Customer App
                     </span>
@@ -208,9 +232,11 @@ const VendorHeader: React.FC<VendorHeaderProps> = ({ onLogout }) => {
                 className={`
                   flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap
                   transition-colors duration-200
-                  ${pathname === item.path
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-text-secondary hover:text-text-primary hover:bg-surface'}
+                  ${
+                    pathname === item.path
+                      ? "bg-primary text-primary-foreground"
+                      : "text-text-secondary hover:text-text-primary hover:bg-surface"
+                  }
                 `}
               >
                 <Icon name={item.icon as any} size={16} />
