@@ -23,6 +23,7 @@ import {
   CheckCircle,
   XCircle,
   AlertTriangle,
+  X,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Link from "next/link";
@@ -145,8 +146,8 @@ const vendorAuthService = {
   },
 };
 
-// Notification Component
-const NotificationBanner = ({
+// Modal Notification Component
+const NotificationModal = ({
   type,
   message,
   show,
@@ -162,37 +163,81 @@ const NotificationBanner = ({
   const getIcon = () => {
     switch (type) {
       case "success":
-        return <CheckCircle className="h-5 w-5" />;
+        return <CheckCircle className="h-12 w-12 text-green-500" />;
       case "error":
-        return <XCircle className="h-5 w-5" />;
+        return <XCircle className="h-12 w-12 text-red-500" />;
       case "info":
-        return <AlertTriangle className="h-5 w-5" />;
+        return <AlertTriangle className="h-12 w-12 text-blue-500" />;
     }
   };
 
   const getColors = () => {
     switch (type) {
       case "success":
-        return "bg-green-50 border-green-200 text-green-800";
+        return {
+          bg: "bg-green-50",
+          border: "border-green-200",
+          button: "bg-green-600 hover:bg-green-700",
+        };
       case "error":
-        return "bg-red-50 border-red-200 text-red-800";
+        return {
+          bg: "bg-red-50",
+          border: "border-red-200",
+          button: "bg-red-600 hover:bg-red-700",
+        };
       case "info":
-        return "bg-blue-50 border-blue-200 text-blue-800";
+        return {
+          bg: "bg-blue-50",
+          border: "border-blue-200",
+          button: "bg-blue-600 hover:bg-blue-700",
+        };
     }
   };
 
+  const colors = getColors();
+
   return (
-    <div
-      className={`fixed top-4 right-4 z-50 p-4 border rounded-lg shadow-lg max-w-md ${getColors()}`}
-    >
-      <div className="flex items-start gap-3">
-        {getIcon()}
-        <div className="flex-1">
-          <p className="text-sm font-medium">{message}</p>
-        </div>
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-          ×
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div
+        className={`relative bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 border-2 ${colors.border}`}
+      >
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <X className="h-5 w-5" />
         </button>
+
+        {/* Content */}
+        <div className={`p-8 rounded-t-xl ${colors.bg}`}>
+          <div className="text-center">
+            <div className="flex justify-center mb-4">{getIcon()}</div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              {type === "success" && "Success!"}
+              {type === "error" && "Error"}
+              {type === "info" && "Processing..."}
+            </h3>
+            <p className="text-gray-700 leading-relaxed">{message}</p>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="p-6 bg-white rounded-b-xl">
+          <Button
+            onClick={onClose}
+            className={`w-full ${colors.button} text-white`}
+          >
+            {type === "info" ? "Please Wait..." : "OK"}
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -233,9 +278,18 @@ const VendorAuth: React.FC = () => {
     message: string
   ) => {
     setNotification({ type, message, show: true });
-    setTimeout(() => {
-      setNotification((prev) => ({ ...prev, show: false }));
-    }, 5000); // Auto hide after 5 seconds
+
+    // Auto hide after 5 seconds for non-info messages
+    if (type !== "info") {
+      setTimeout(() => {
+        setNotification((prev) => ({ ...prev, show: false }));
+      }, 5000);
+    }
+  };
+
+  // Close notification function
+  const closeNotification = () => {
+    setNotification((prev) => ({ ...prev, show: false }));
   };
 
   const handleInputChange = (
@@ -314,7 +368,7 @@ const VendorAuth: React.FC = () => {
 
     try {
       if (isLogin) {
-        showNotification("info", "Signing you in...");
+        showNotification("info", "Signing you in, please wait...");
 
         const loginData: LoginRequest = {
           email: formData.email,
@@ -371,17 +425,22 @@ const VendorAuth: React.FC = () => {
           }
         }
 
-        showNotification(
-          "success",
-          "Login successful! Redirecting to dashboard..."
-        );
+        // Close info modal first
+        closeNotification();
 
-        // Delay redirect to show success message
         setTimeout(() => {
-          router.push("../dashboard");
-        }, 1500);
+          showNotification(
+            "success",
+            "Login successful! You're being redirected to your dashboard."
+          );
+
+          // Redirect after showing success message
+          setTimeout(() => {
+            router.push("../dashboard");
+          }, 2000);
+        }, 500);
       } else {
-        showNotification("info", "Creating your account...");
+        showNotification("info", "Creating your account, please wait...");
 
         const signupData: VendorSignupRequest = {
           business_name: formData.businessName,
@@ -429,15 +488,20 @@ const VendorAuth: React.FC = () => {
           }
         }
 
-        showNotification(
-          "success",
-          "Account created successfully! Redirecting to dashboard..."
-        );
+        // Close info modal first
+        closeNotification();
 
-        // Delay redirect to show success message
         setTimeout(() => {
-          router.push("../dashboard");
-        }, 1500);
+          showNotification(
+            "success",
+            "Account created successfully! Welcome to the platform. You're being redirected to your dashboard."
+          );
+
+          // Redirect after showing success message
+          setTimeout(() => {
+            router.push("../dashboard");
+          }, 2000);
+        }, 500);
       }
     } catch (error: any) {
       console.error("Authentication error:", error);
@@ -463,7 +527,12 @@ const VendorAuth: React.FC = () => {
           "An account with this email already exists. Please try logging in.";
       }
 
-      showNotification("error", `${errorTitle}: ${errorMessage}`);
+      // Close info modal first
+      closeNotification();
+
+      setTimeout(() => {
+        showNotification("error", `${errorTitle}: ${errorMessage}`);
+      }, 500);
 
       setErrors({
         submit: errorMessage,
@@ -475,7 +544,7 @@ const VendorAuth: React.FC = () => {
 
   const handleGoogleAuth = async () => {
     setIsLoading(true);
-    showNotification("info", "Connecting with Google...");
+    showNotification("info", "Connecting with Google, please wait...");
 
     try {
       // For now, keeping the demo implementation
@@ -503,16 +572,30 @@ const VendorAuth: React.FC = () => {
         localStorage.setItem("isVendorLoggedIn", "true");
       }
 
-      showNotification("success", "Google sign-in successful! Redirecting...");
+      // Close info modal first
+      closeNotification();
 
       setTimeout(() => {
-        router.push("../dashboard");
-      }, 1500);
+        showNotification(
+          "success",
+          "Google sign-in successful! You're being redirected to your dashboard."
+        );
+
+        setTimeout(() => {
+          router.push("../dashboard");
+        }, 2000);
+      }, 500);
     } catch (error) {
-      showNotification(
-        "error",
-        "Google authentication failed. Please try again."
-      );
+      // Close info modal first
+      closeNotification();
+
+      setTimeout(() => {
+        showNotification(
+          "error",
+          "Google Authentication Failed: Unable to connect with Google. Please try again or use email/password login."
+        );
+      }, 500);
+
       setErrors({ submit: "Google authentication failed. Please try again." });
     } finally {
       setIsLoading(false);
@@ -521,11 +604,11 @@ const VendorAuth: React.FC = () => {
 
   return (
     <>
-      <NotificationBanner
+      <NotificationModal
         type={notification.type}
         message={notification.message}
         show={notification.show}
-        onClose={() => setNotification((prev) => ({ ...prev, show: false }))}
+        onClose={closeNotification}
       />
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center p-4">

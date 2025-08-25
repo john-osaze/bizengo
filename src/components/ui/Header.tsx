@@ -132,6 +132,26 @@ const Header: React.FC = () => {
     }, 300);
   };
 
+  // Handle logout functionality
+  const handleLogout = (): void => {
+    // Remove all authentication tokens
+    sessionStorage.removeItem("RSToken");
+    sessionStorage.removeItem("RSUser");
+    localStorage.removeItem("vendorToken");
+
+    // Reset authentication states
+    setIsAuthenticated(false);
+    setIsVendorAuthenticated(false);
+    setUserProfile(null);
+    setIsProfileDropdownOpen(false);
+
+    // Close mobile menu if open
+    setIsOpen(false);
+
+    // Redirect to home page
+    router.push("/");
+  };
+
   const modalOptions: ModalOption[] = [
     {
       id: "shopping",
@@ -272,28 +292,32 @@ const Header: React.FC = () => {
 
           <div className="flex items-center">
             {/* Desktop View: Hidden below sm breakpoint, displayed as flex above */}
-            <div className="hidden sm:flex items-center gap-2 gap-x-6">
+            <div className="hidden sm:flex items-center gap-2 gap-x-4">
               {isAuthenticated || isVendorAuthenticated ? (
-                <div className="relative">
-                  {/* If user logged in (customer or vendor) */}
+                <>
+                  {/* Shopping Cart - Always show when authenticated */}
                   <button
-                    onClick={() => {
-                      // logout clears both tokens
-                      sessionStorage.removeItem("RSToken");
-                      sessionStorage.removeItem("RSUser");
-                      localStorage.removeItem("vendorToken");
-                      setIsAuthenticated(false);
-                      setIsVendorAuthenticated(false);
-                      setUserProfile(null);
-                      setIsProfileDropdownOpen(false);
-                      router.push("/");
-                    }}
-                    className="flex items-center px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium"
+                    onClick={() => router.push("/")}
+                    className="p-2 rounded-lg hover:bg-surface-secondary transition-colors duration-200 relative"
+                    aria-label="User Shopping Cart"
+                  >
+                    <Icon
+                      name="ShoppingCart"
+                      size={20}
+                      className="text-text-primary"
+                    />
+                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border-1 border-surface"></div>
+                  </button>
+
+                  {/* Logout Button */}
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium transition-colors duration-200"
                   >
                     <Icon name="LogOut" size={16} className="mr-2" />
                     Logout
                   </button>
-                </div>
+                </>
               ) : (
                 <>
                   <Link
@@ -427,19 +451,6 @@ const Header: React.FC = () => {
                   </div>
                 </div>
               )}
-
-              <button
-                onClick={() => router.push("/")}
-                className="p-2 rounded-lg hover:bg-surface-secondary transition-colors duration-200 relative"
-                aria-label="User Shopping Cart"
-              >
-                <Icon
-                  name="ShoppingCart"
-                  size={20}
-                  className="text-text-primary"
-                />
-                <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border-1 border-surface"></div>
-              </button>
             </div>
 
             {/* Mobile View: Hidden above sm breakpoint, displayed as block below */}
@@ -459,20 +470,52 @@ const Header: React.FC = () => {
 
               {isOpen && (
                 <div className="absolute top-full right-0 mt-2 w-60 bg-white rounded-lg shadow-xl z-10 overflow-hidden border border-surface-border">
-                  <Link
-                    href="/auth/login"
-                    className="block w-full text-left p-3 text-sm font-medium text-text-primary hover:bg-surface-secondary transition-colors duration-200"
-                    aria-label="Login to your account"
-                  >
-                    Login
-                  </Link>
-                  <button
-                    onClick={openModal}
-                    className=" w-full text-left p-3 text-sm font-medium text-text-primary hover:bg-surface-secondary transition-colors duration-200 flex items-center gap-2"
-                    aria-label="Start selling"
-                  >
-                    Get Started
-                  </button>
+                  {isAuthenticated || isVendorAuthenticated ? (
+                    <>
+                      {/* Cart option in mobile menu */}
+                      <button
+                        onClick={() => {
+                          router.push("/");
+                          setIsOpen(false);
+                        }}
+                        className="flex items-center w-full text-left p-3 text-sm font-medium text-text-primary hover:bg-surface-secondary transition-colors duration-200"
+                      >
+                        <Icon name="ShoppingCart" size={16} className="mr-3" />
+                        Shopping Cart
+                        <div className="ml-auto w-2 h-2 bg-red-500 rounded-full"></div>
+                      </button>
+
+                      {/* Logout option in mobile menu */}
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center w-full text-left p-3 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors duration-200"
+                      >
+                        <Icon name="LogOut" size={16} className="mr-3" />
+                        Logout
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        href="/auth/login"
+                        className="block w-full text-left p-3 text-sm font-medium text-text-primary hover:bg-surface-secondary transition-colors duration-200"
+                        aria-label="Login to your account"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        Login
+                      </Link>
+                      <button
+                        onClick={() => {
+                          openModal();
+                          setIsOpen(false);
+                        }}
+                        className="w-full text-left p-3 text-sm font-medium text-text-primary hover:bg-surface-secondary transition-colors duration-200 flex items-center gap-2"
+                        aria-label="Start selling"
+                      >
+                        Get Started
+                      </button>
+                    </>
+                  )}
 
                   {isModalOpen && (
                     <div
