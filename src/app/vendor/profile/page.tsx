@@ -7,6 +7,7 @@ import Settings from "./components/Settings";
 import { useRouter } from "next/navigation";
 import { LucideIconName } from "@/components/ui/AppIcon";
 
+// --- Interfaces ---
 interface Tab {
   id: string;
   label: string;
@@ -32,11 +33,6 @@ interface VendorData {
   phone?: string;
 }
 
-interface VendorProps {
-  onLogout: () => void;
-  vendorData?: VendorData;
-}
-
 interface LocationData {
   latitude: number;
   longitude: number;
@@ -51,114 +47,68 @@ interface LocationError {
   message: string;
 }
 
-// Custom hook for auto location
+// --- Hook for location ---
 const useAutoLocation = () => {
   const [location, setLocation] = useState<LocationData | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<LocationError | null>(null);
 
-  // Function to get readable address from coordinates
-  const getAddressFromCoordinates = async (
-    lat: number,
-    lon: number
-  ): Promise<string> => {
+  const getAddressFromCoordinates = async (lat: number, lon: number) => {
     try {
-      // Using OpenStreetMap Nominatim API (free, no API key required)
-      const response = await fetch(
+      const res = await fetch(
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`
       );
-      const data = await response.json();
-
+      const data = await res.json();
       const address = data.address;
       const city = address.city || address.town || address.village || "";
       const state = address.state || address.region || "";
       const country = address.country || "";
-
-      return `${city}${state ? ", " + state : ""}${
-        country ? ", " + country : ""
-      }`;
-    } catch (err) {
-      console.error("Error getting address:", err);
-      return `${lat.toFixed(4)}, ${lon.toFixed(4)}`; // Fallback to coordinates
+      return `${city}${state ? ", " + state : ""}${country ? ", " + country : ""}`;
+    } catch {
+      return `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
     }
   };
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
-      setError({
-        code: 0,
-        message: "Geolocation is not supported by this browser",
-      });
+      setError({ code: 0, message: "Geolocation not supported" });
       return;
     }
 
     setLoading(true);
     setError(null);
 
-    const options = {
-      enableHighAccuracy: true,
-      timeout: 10000, // 10 seconds
-      maximumAge: 300000, // 5 minutes cache
-    };
-
     navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-
-        try {
-          // Get readable address
-          const fullAddress = await getAddressFromCoordinates(
-            latitude,
-            longitude
-          );
-          const addressParts = fullAddress.split(", ");
-
-          const locationData: LocationData = {
-            latitude,
-            longitude,
-            city: addressParts[0] || "",
-            state: addressParts[1] || "",
-            country: addressParts[2] || "",
-            fullAddress,
-          };
-
-          setLocation(locationData);
-
-          // Store in localStorage for future use
-          localStorage.setItem("userLocation", JSON.stringify(locationData));
-        } catch (err) {
-          // Even if address lookup fails, we have coordinates
-          const locationData: LocationData = {
-            latitude,
-            longitude,
-            fullAddress: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
-          };
-          setLocation(locationData);
-        }
-
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const fullAddress = await getAddressFromCoordinates(latitude, longitude);
+        const addressParts = fullAddress.split(", ");
+        const locationData: LocationData = {
+          latitude,
+          longitude,
+          city: addressParts[0] || "",
+          state: addressParts[1] || "",
+          country: addressParts[2] || "",
+          fullAddress,
+        };
+        setLocation(locationData);
+        localStorage.setItem("userLocation", JSON.stringify(locationData));
         setLoading(false);
       },
       (err) => {
-        setError({
-          code: err.code,
-          message: getErrorMessage(err.code),
-        });
+        setError({ code: err.code, message: getErrorMessage(err.code) });
         setLoading(false);
       },
-      options
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
     );
   };
 
-  const getErrorMessage = (code: number): string => {
+  const getErrorMessage = (code: number) => {
     switch (code) {
-      case 1:
-        return "Location access denied by user";
-      case 2:
-        return "Location information is unavailable";
-      case 3:
-        return "Location request timed out";
-      default:
-        return "An unknown error occurred";
+      case 1: return "Location access denied";
+      case 2: return "Location unavailable";
+      case 3: return "Request timed out";
+      default: return "Unknown error";
     }
   };
 
@@ -168,105 +118,58 @@ const useAutoLocation = () => {
     localStorage.removeItem("userLocation");
   };
 
-  // Load from localStorage on mount
   useEffect(() => {
-    const savedLocation = localStorage.getItem("userLocation");
-    if (savedLocation) {
+    const saved = localStorage.getItem("userLocation");
+    if (saved) {
       try {
-        setLocation(JSON.parse(savedLocation));
-      } catch (err) {
-        console.error("Error parsing saved location:", err);
+        setLocation(JSON.parse(saved));
+      } catch {
         localStorage.removeItem("userLocation");
       }
     }
   }, []);
 
-  return {
-    location,
-    loading,
-    error,
-    getCurrentLocation,
-    clearLocation,
-  };
+  return { location, loading, error, getCurrentLocation, clearLocation };
 };
 
-const UserProfile: React.FC<VendorProps> = ({
-  onLogout,
-  vendorData: propVendorData,
-}) => {
-  const [activeTab, setActiveTab] = useState<string>("listings");
-  const [pathname, setPathname] = useState<string>("");
-
-  // Fixed: Initialize state with propVendorData
-  const [vendorData, setVendorData] = useState<VendorData | null>(
-    propVendorData || null
-  );
-
-  // Add auto location hook
-  const {
-    location,
-    loading: locationLoading,
-    error: locationError,
-    getCurrentLocation,
-    clearLocation,
-  } = useAutoLocation();
-
+// --- Main Component ---
+const UserProfile: React.FC = () => {
+  const [activeTab, setActiveTab] = useState("listings");
+  const [vendorData, setVendorData] = useState<VendorData | null>(null);
   const router = useRouter();
 
+  const { location, loading: locationLoading, error: locationError, getCurrentLocation, clearLocation } = useAutoLocation();
+
   useEffect(() => {
-    setPathname(window.location.pathname);
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch("https://rsc-kl61.onrender.com/api/user/profile", {
+          headers: {
+            accept: "application/json",
+            Authorization: `Bearer ${localStorage.getItem("vendorToken")}`,
+          },
+        });
+        if (!res.ok) throw new Error("Failed to fetch profile");
+        const data = await res.json();
+        setVendorData(data);
+      } catch (err) {
+        console.error("Error fetching profile:", err);
+      }
+    };
+    fetchProfile();
+  }, []);
 
-    // Only fetch if no vendor data was passed as prop
-    if (!propVendorData) {
-      const fetchProfile = async () => {
-        try {
-          const res = await fetch(
-            "https://rsc-kl61.onrender.com/api/user/profile",
-            {
-              headers: {
-                accept: "application/json",
-                Authorization: `Bearer ${localStorage.getItem("vendorToken")}`,
-              },
-            }
-          );
-
-          if (!res.ok) throw new Error("Failed to fetch profile");
-
-          const data = await res.json();
-          setVendorData(data);
-        } catch (err) {
-          console.error("Error fetching vendor profile:", err);
-        }
-      };
-
-      fetchProfile();
-    }
-  }, [propVendorData]);
-
-  // Auto-get location on component mount
-  useEffect(() => {
-    if (!location && !locationLoading && !locationError) {
-      getCurrentLocation();
-    }
-  }, [location, locationLoading, locationError]);
-
-  // Mock user profile data (you can replace this with actual vendorData when available)
+  // --- Profile Fallback ---
   const userProfile = {
     id: 1,
-    name:
-      vendorData?.business_name ||
-      `${vendorData?.first_name || "Sarah"} ${
-        vendorData?.last_name || "Johnson"
-      }`,
+    name: vendorData?.business_name || `${vendorData?.first_name || "Sarah"} ${vendorData?.last_name || "Johnson"}`,
     email: vendorData?.email || "sarah.johnson@email.com",
     phone: vendorData?.phone || "+1 (555) 123-4567",
-    avatar:
-      "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
-    // Use auto location or fallback
+    avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
     location: location?.fullAddress || "San Francisco, CA",
     joinDate: "March 2023",
     isVerified: {
-      email: vendorData?.isVerified || true,
+      email: vendorData?.isVerified ?? true,
       phone: true,
       identity: false,
     },
@@ -276,40 +179,18 @@ const UserProfile: React.FC<VendorProps> = ({
       sellerRating: 4.8,
       totalReviews: 32,
     },
-    bio: `Passionate about sustainable living and finding great deals on quality items. I love connecting with my local community through buying and selling. Always happy to negotiate and provide detailed information about my listings!`,
+    bio: "Passionate about sustainable living and finding great deals on quality items...",
   };
 
   const tabs: Tab[] = [
-    {
-      id: "listings",
-      label: "My Listings",
-      icon: "Package",
-      count: userProfile.stats.itemsListed,
-    },
+    { id: "listings", label: "My Listings", icon: "Package", count: userProfile.stats.itemsListed },
     { id: "settings", label: "Settings", icon: "Settings" },
   ];
 
   const quickActions: QuickAction[] = [
-    {
-      id: "list-item",
-      label: "List New Item",
-      icon: "Plus",
-      color: "bg-primary text-white",
-      action: () => router.push("/create-listing"),
-    },
-    {
-      id: "messages",
-      label: "Messages",
-      icon: "MessageCircle",
-      color: "bg-secondary text-white",
-      badge: 3,
-    },
-    {
-      id: "account-settings",
-      label: "Account Settings",
-      icon: "User",
-      color: "bg-surface border border-border text-text-primary",
-    },
+    { id: "list-item", label: "List New Item", icon: "Plus", color: "bg-primary text-white", action: () => router.push("/create-listing") },
+    { id: "messages", label: "Messages", icon: "MessageCircle", color: "bg-secondary text-white", badge: 3 },
+    { id: "account-settings", label: "Account Settings", icon: "User", color: "bg-surface border border-border text-text-primary" },
   ];
 
   const renderTabContent = () => {
