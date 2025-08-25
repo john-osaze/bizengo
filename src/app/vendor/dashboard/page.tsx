@@ -72,27 +72,15 @@ interface DashboardData {
   notifications: Notification[];
 }
 
-interface VendorProps {
-  onLogout: () => void;
-  vendorData?: VendorData; // Add this line
-}
-const VendorDashboard: React.FC<VendorProps> = ({
-  onLogout,
-
-  vendorData: propVendorData,
-}) => {
+const VendorDashboard: React.FC = () => {
   const router = useRouter();
-
-  const [vendorData, setVendorData] = useState<VendorData | null>(
-    propVendorData || null
-  );
+  const [vendorData, setVendorData] = useState<VendorData | null>(null);
   const [pathname, setPathname] = useState<string>("");
-
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(
     null
   );
-  const [loading, setLoading] = useState<boolean>(true);
 
+  const [loading, setLoading] = useState<boolean>(true);
   useEffect(() => {
     // Check if vendor is authenticated
     const isLoggedIn = localStorage.getItem("isVendorLoggedIn");
@@ -235,32 +223,29 @@ const VendorDashboard: React.FC<VendorProps> = ({
   useEffect(() => {
     setPathname(window.location.pathname);
 
-    // Only fetch if no vendor data was passed as prop
-    if (!propVendorData) {
-      const fetchProfile = async () => {
-        try {
-          const res = await fetch(
-            "https://rsc-kl61.onrender.com/api/user/profile",
-            {
-              headers: {
-                accept: "application/json",
-                Authorization: `Bearer ${localStorage.getItem("vendorToken")}`,
-              },
-            }
-          );
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(
+          "https://rsc-kl61.onrender.com/api/user/profile",
+          {
+            headers: {
+              accept: "application/json",
+              Authorization: `Bearer ${localStorage.getItem("vendorToken")}`,
+            },
+          }
+        );
 
-          if (!res.ok) throw new Error("Failed to fetch profile");
+        if (!res.ok) throw new Error("Failed to fetch profile");
 
-          const data = await res.json();
-          setVendorData(data);
-        } catch (err) {
-          console.error("Error fetching vendor profile:", err);
-        }
-      };
+        const data = await res.json();
+        setVendorData(data);
+      } catch (err) {
+        console.error("Error fetching vendor profile:", err);
+      }
+    };
 
-      fetchProfile();
-    }
-  }, [propVendorData]);
+    fetchProfile();
+  }, []);
 
   if (loading) {
     return (
