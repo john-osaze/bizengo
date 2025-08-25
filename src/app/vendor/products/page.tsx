@@ -41,13 +41,13 @@ const ToastNotification: React.FC<{
   const getToastStyles = () => {
     switch (toast.type) {
       case "success":
-        return "bg-success/10 border-success/20 text-success";
+        return "bg-success/10 mt-[3rem] border-success/20 text-success";
       case "error":
-        return "bg-error/10 border-error/20 text-error";
+        return "bg-error/10 mt-[3rem] border-error/20 text-error";
       case "loading":
-        return "bg-primary/10 border-primary/20 text-primary";
+        return "bg-primary/10 mt-[3rem] border-primary/20 text-primary";
       default:
-        return "bg-muted border-border text-foreground";
+        return "bg-muted mt-[3rem] border-border text-foreground";
     }
   };
 
@@ -775,7 +775,7 @@ const ProductManagement: React.FC = () => {
               {/* Header */}
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h1 className="text-3xl font-bold text-foreground">
+                  <h1 className="text-[12px] sm:text-[14px] md:text-[16px] lg:text-[18px] font-bold text-foreground">
                     Product Management
                   </h1>
                   <p className="text-muted-foreground mt-1">
