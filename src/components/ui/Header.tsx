@@ -7,7 +7,7 @@ import Icon from "./AppIcon"; // Adjust path as needed
 import Link from "next/link";
 import { ShoppingCart, Store, X } from "lucide-react";
 import "./custom.css";
-
+import CartSystem from "@/app/CartSystem/page";
 type OptionType = "shopping" | "vendor" | null;
 
 interface ModalOption {
@@ -34,6 +34,7 @@ interface UserProfile {
 }
 
 const Header: React.FC = () => {
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
   const router = useRouter();
@@ -297,7 +298,7 @@ const Header: React.FC = () => {
                 <>
                   {/* Shopping Cart - Always show when authenticated */}
                   <button
-                    onClick={() => router.push("/")}
+                    onClick={() => setIsCartOpen(true)} // 👈 open cart sidebar
                     className="p-2 rounded-lg hover:bg-surface-secondary transition-colors duration-200 relative"
                     aria-label="User Shopping Cart"
                   >
@@ -474,10 +475,7 @@ const Header: React.FC = () => {
                     <>
                       {/* Cart option in mobile menu */}
                       <button
-                        onClick={() => {
-                          router.push("/");
-                          setIsOpen(false);
-                        }}
+                        onClick={() => setIsCartOpen(true)}
                         className="flex items-center w-full text-left p-3 text-sm font-medium text-text-primary hover:bg-surface-secondary transition-colors duration-200"
                       >
                         <Icon name="ShoppingCart" size={16} className="mr-3" />
@@ -633,6 +631,7 @@ const Header: React.FC = () => {
           </div>
         </div>
       </div>
+      <CartSystem isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </header>
   );
 };

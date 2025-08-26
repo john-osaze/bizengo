@@ -1,584 +1,673 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 // import { useRole } from '@/components/ui/RoleContextNavigation';
-import { useRouter } from 'next/navigation';
-import OrderFilters from './components/OrderFilters';
-import OrderStatistics from './components/OrderStatistics';
-import BulkActionsToolbar from './components/BulkActionsToolbar';
-import OrderTable from './components/OrderTable';
-import OrderDetailModal from './components/OrderDetailModal';
-import RecentActivityFeed from './components/RecentActivityFeed';
-import QuickActions from './components/QuickActions';
+import { useRouter } from "next/navigation";
+import OrderFilters from "./components/OrderFilters";
+import OrderStatistics from "./components/OrderStatistics";
+import BulkActionsToolbar from "./components/BulkActionsToolbar";
+import OrderTable from "./components/OrderTable";
+import OrderDetailModal from "./components/OrderDetailModal";
+import RecentActivityFeed from "./components/RecentActivityFeed";
+import QuickActions from "./components/QuickActions";
 
 // Type definitions
 interface Customer {
-	name: string;
-	email: string;
-	phone?: string;
+  name: string;
+  email: string;
+  phone?: string;
 }
 
 interface ProductOrderItem {
-	id: number;
-	name: string;
-	image: string;
-	quantity: number;
-	price: number;
+  id: number;
+  name: string;
+  image: string;
+  quantity: number;
+  price: number;
 }
-
-// interface ShippingAddress {
-// 	name: string;
-// 	street: string;
-// 	city: string;
-// 	state: string;
-// 	zipCode: string;
-// 	country: string;
-// 	phone: string;
-// }
 
 interface ShippingAddress {
-	name: string;
-	street: string;
-	city: string;
-	state: string;
-	zipCode: string;
-	country: string;
-	phone?: string;
+  name: string;
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+  phone?: string;
 }
 
-type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
+type OrderStatus =
+  | "pending"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "cancelled"
+  | "refunded";
 
 interface ProductOrder {
-	id: string;
-	orderNumber: string;
-	customer: Customer;
-	items: ProductOrderItem[] | any[];
-	subtotal: number;
-	shipping: number;
-	tax: number;
-	total: number;
-	status: OrderStatus;
-	createdAt: Date;
-	shippingAddress: ShippingAddress;
-	customerNotes?: string | null;
-	trackingNumber?: string | null;
+  id: string;
+  orderNumber: string;
+  customer: Customer;
+  items: ProductOrderItem[] | any[];
+  subtotal: number;
+  shipping: number;
+  tax: number;
+  total: number;
+  status: OrderStatus;
+  createdAt: Date;
+  shippingAddress: ShippingAddress;
+  customerNotes?: string | null;
+  trackingNumber?: string | null;
+}
+
+// API Response types
+interface ApiOrderItem {
+  price: number;
+  product_name: string;
+  quantity: number;
+  status?: string;
+}
+
+interface ApiOrder {
+  buyer_email: string;
+  buyer_id: number;
+  buyer_name: string;
+  created_at: string;
+  items: ApiOrderItem[];
+  order_id: number;
+  status: string;
+}
+
+interface ApiOrdersResponse {
+  orders: ApiOrder[];
+}
+
+// API response type for single order details
+interface ApiOrderDetailsResponse {
+  buyer_email: string;
+  buyer_id: number;
+  buyer_name: string;
+  created_at: string;
+  items: ApiOrderItem[];
+  order_id: number;
 }
 
 interface DateRange {
-	from: string;
-	to: string;
+  from: string;
+  to: string;
 }
 
 interface AmountRange {
-	min: string;
-	max: string;
+  min: string;
+  max: string;
 }
 
-type SortOption = 'newest' | 'oldest' | 'amount_high' | 'amount_low' | string;
+type SortOption = "newest" | "oldest" | "amount_high" | "amount_low" | string;
 
 interface Filters {
-	search: string;
-	status: string;
-	sort: SortOption;
-	dateRange: DateRange;
-	amountRange: AmountRange;
+  search: string;
+  status: string;
+  sort: SortOption;
+  dateRange: DateRange;
+  amountRange: AmountRange;
 }
 
 interface Statistics {
-	totalOrders: number;
-	ordersChange: number;
-	pendingOrders: number;
-	pendingChange: number;
-	revenueToday: number;
-	revenueChange: number;
-	avgOrderValue: number;
-	avgOrderChange: number;
+  totalOrders: number;
+  ordersChange: number;
+  pendingOrders: number;
+  pendingChange: number;
+  revenueToday: number;
+  revenueChange: number;
+  avgOrderValue: number;
+  avgOrderChange: number;
 }
 
-type ActivityType = 'order_placed' | 'status_updated' | 'payment_received' | 'message_received';
+type ActivityType =
+  | "order_placed"
+  | "status_updated"
+  | "payment_received"
+  | "message_received";
 
 interface Activity {
-	id: number;
-	type: ActivityType;
-	title: string;
-	description: string;
-	orderNumber: string;
-	status?: OrderStatus;
-	timestamp: string;
+  id: number;
+  type: ActivityType;
+  title: string;
+  description: string;
+  orderNumber: string;
+  status?: OrderStatus;
+  timestamp: string;
 }
 
-type ExportFormat = 'csv' | 'xlsx' | 'pdf';
+type ExportFormat = "csv" | "xlsx" | "pdf";
 
 interface VendorData {
-	businessName?: string;
-	[key: string]: any;
+  businessName?: string;
+  [key: string]: any;
 }
 
 const OrderManagement: React.FC = () => {
-	// const { userRole } = useRole();
-	const router = useRouter();
-	const [vendorData, setVendorData] = useState<VendorData | null>(null);
-	const [orders, setOrders] = useState<ProductOrder[]>([]);
-	const [filteredOrders, setFilteredOrders] = useState<ProductOrder[]>([]);
-	const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
-	const [selectedOrder, setSelectedOrder] = useState<ProductOrder | null>(null);
-	const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-	const [filters, setFilters] = useState<Filters>({
-		search: '',
-		status: 'all',
-		sort: 'newest',
-		dateRange: {
-			from: '',
-			to: ''
-		},
-		amountRange: {
-			min: '',
-			max: ''
-		}
-	});
+  // const { userRole } = useRole();
+  const router = useRouter();
+  const [vendorData, setVendorData] = useState<VendorData | null>(null);
+  const [orders, setOrders] = useState<ProductOrder[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<ProductOrder[]>([]);
+  const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
+  const [selectedOrder, setSelectedOrder] = useState<ProductOrder | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<Filters>({
+    search: "",
+    status: "all",
+    sort: "newest",
+    dateRange: {
+      from: "",
+      to: "",
+    },
+    amountRange: {
+      min: "",
+      max: "",
+    },
+  });
 
-	// Mock data
-	const mockOrders: ProductOrder[] = [
-		{
-			id: 'ORD-001',
-			orderNumber: 'ORD-2024-001',
-			customer: {
-				name: 'Sarah Johnson',
-				email: 'sarah.johnson@email.com',
-				phone: '+1 (555) 123-4567'
-			},
-			items: [
-				{
-					id: 1,
-					name: 'Wireless Bluetooth Headphones',
-					image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400',
-					quantity: 1,
-					price: 79.99
-				},
-				{
-					id: 2,
-					name: 'Phone Case - Clear',
-					image: 'https://images.unsplash.com/photo-1601593346740-925612772716?w=400',
-					quantity: 2,
-					price: 15.99
-				}
-			],
-			subtotal: 111.97,
-			shipping: 9.99,
-			tax: 9.76,
-			total: 131.72,
-			status: 'pending',
-			createdAt: new Date('2024-07-27T10:30:00'),
-			shippingAddress: {
-				name: 'Sarah Johnson',
-				street: '123 Main Street, Apt 4B',
-				city: 'New York',
-				state: 'NY',
-				zipCode: '10001',
-				country: 'United States',
-				phone: '+1 (555) 123-4567'
-			},
-			customerNotes: 'Please leave package at front door if no one is home.',
-			trackingNumber: 'TRK123456789'
-		},
-		{
-			id: 'ORD-002',
-			orderNumber: 'ORD-2024-002',
-			customer: {
-				name: 'Michael Chen',
-				email: 'michael.chen@email.com',
-				phone: '+1 (555) 987-6543'
-			},
-			items: [
-				{
-					id: 3,
-					name: 'Smart Watch Series 8',
-					image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
-					quantity: 1,
-					price: 299.99
-				}
-			],
-			subtotal: 299.99,
-			shipping: 0.00,
-			tax: 24.00,
-			total: 323.99,
-			status: 'processing',
-			createdAt: new Date('2024-07-26T14:15:00'),
-			shippingAddress: {
-				name: 'Michael Chen',
-				street: '456 Oak Avenue',
-				city: 'Los Angeles',
-				state: 'CA',
-				zipCode: '90210',
-				country: 'United States',
-				phone: '+1 (555) 987-6543'
-			},
-			customerNotes: null,
-			trackingNumber: null
-		},
-		{
-			id: 'ORD-003',
-			orderNumber: 'ORD-2024-003',
-			customer: {
-				name: 'Emily Rodriguez',
-				email: 'emily.rodriguez@email.com',
-				phone: '+1 (555) 456-7890'
-			},
-			items: [
-				{
-					id: 4,
-					name: 'Laptop Stand - Adjustable',
-					image: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400',
-					quantity: 1,
-					price: 45.99
-				},
-				{
-					id: 5,
-					name: 'Wireless Mouse',
-					image: 'https://images.unsplash.com/photo-1527814050087-3793815479db?w=400',
-					quantity: 1,
-					price: 29.99
-				}
-			],
-			subtotal: 75.98,
-			shipping: 7.99,
-			tax: 6.72,
-			total: 90.69,
-			status: 'shipped',
-			createdAt: new Date('2024-07-25T09:45:00'),
-			shippingAddress: {
-				name: 'Emily Rodriguez',
-				street: '789 Pine Street',
-				city: 'Chicago',
-				state: 'IL',
-				zipCode: '60601',
-				country: 'United States',
-				phone: '+1 (555) 456-7890'
-			},
-			customerNotes: 'Business address - please deliver during business hours (9 AM - 5 PM).',
-			trackingNumber: 'TRK987654321'
-		},
-		{
-			id: 'ORD-004',
-			orderNumber: 'ORD-2024-004',
-			customer: {
-				name: 'David Thompson',
-				email: 'david.thompson@email.com',
-				phone: '+1 (555) 321-0987'
-			},
-			items: [
-				{
-					id: 6,
-					name: 'Gaming Keyboard - RGB',
-					image: 'https://images.unsplash.com/photo-1541140532154-b024d705b90a?w=400',
-					quantity: 1,
-					price: 89.99
-				}
-			],
-			subtotal: 89.99,
-			shipping: 12.99,
-			tax: 8.24,
-			total: 111.22,
-			status: 'delivered',
-			createdAt: new Date('2024-07-24T16:20:00'),
-			shippingAddress: {
-				name: 'David Thompson',
-				street: '321 Elm Drive',
-				city: 'Austin',
-				state: 'TX',
-				zipCode: '73301',
-				country: 'United States',
-				phone: '+1 (555) 321-0987'
-			},
-			customerNotes: null,
-			trackingNumber: 'TRK456789123'
-		},
-		{
-			id: 'ORD-005',
-			orderNumber: 'ORD-2024-005',
-			customer: {
-				name: 'Lisa Wang',
-				email: 'lisa.wang@email.com',
-				phone: '+1 (555) 654-3210'
-			},
-			items: [
-				{
-					id: 7,
-					name: 'Desk Organizer Set',
-					image: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400',
-					quantity: 1,
-					price: 34.99
-				},
-				{
-					id: 8,
-					name: 'LED Desk Lamp',
-					image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
-					quantity: 1,
-					price: 59.99
-				}
-			],
-			subtotal: 94.98,
-			shipping: 8.99,
-			tax: 8.32,
-			total: 112.29,
-			status: 'cancelled',
-			createdAt: new Date('2024-07-23T11:10:00'),
-			shippingAddress: {
-				name: 'Lisa Wang',
-				street: '654 Maple Lane',
-				city: 'Seattle',
-				state: 'WA',
-				zipCode: '98101',
-				country: 'United States',
-				phone: '+1 (555) 654-3210'
-			},
-			customerNotes: 'Cancel this order - found better deal elsewhere.',
-			trackingNumber: null
-		}
-	];
+  // Function to get vendor token from localStorage
+  const getVendorToken = (): string | null => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("vendorToken");
+    }
+    return null;
+  };
 
-	const mockStatistics: Statistics = {
-		totalOrders: 1247,
-		ordersChange: 12.5,
-		pendingOrders: 23,
-		pendingChange: -5.2,
-		revenueToday: 2847.50,
-		revenueChange: 18.3,
-		avgOrderValue: 87.45,
-		avgOrderChange: 3.7
-	};
+  // Function to transform API order to component order format
+  const transformApiOrderToProductOrder = (
+    apiOrder: ApiOrder | ApiOrderDetailsResponse
+  ): ProductOrder => {
+    // Calculate totals
+    const subtotal = apiOrder.items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+    const shipping = subtotal > 5000 ? 0 : 1000; // Free shipping over ₦50
+    const tax = subtotal * 0.075; // 7.5% VAT
+    const total = subtotal + shipping + tax;
 
-	const mockActivities: Activity[] = [
-		{
-			id: 1,
-			type: 'order_placed',
-			title: 'New Order Received',
-			description: 'Sarah Johnson placed a new order',
-			orderNumber: 'ORD-2024-001',
-			status: 'pending',
-			timestamp: `${new Date(Date.now() - 300000)}`
-		},
-		{
-			id: 2,
-			type: 'status_updated',
-			title: 'Order Status Updated',
-			description: 'Order status changed to processing',
-			orderNumber: 'ORD-2024-002',
-			status: 'processing',
-			timestamp: `${new Date(Date.now() - 900000)}`
-		},
-		{
-			id: 3,
-			type: 'payment_received',
-			title: 'Payment Confirmed',
-			description: 'Payment of $323.99 received',
-			orderNumber: 'ORD-2024-002',
-			timestamp: `${new Date(Date.now() - 1800000)}`
-		},
-		{
-			id: 4,
-			type: 'message_received',
-			title: 'Customer Message',
-			description: 'Emily Rodriguez sent a message about delivery',
-			orderNumber: 'ORD-2024-003',
-			timestamp: `${new Date(Date.now() - 3600000)}`
-		}
-	];
+    // Transform items
+    const transformedItems: ProductOrderItem[] = apiOrder.items.map(
+      (item, index) => ({
+        id: index + 1,
+        name: item.product_name,
+        image:
+          "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400", // Default image
+        quantity: item.quantity,
+        price: item.price / 100, // Convert from kobo to naira if needed
+      })
+    );
 
-	useEffect(() => {
-		setOrders(mockOrders);
-		setFilteredOrders(mockOrders);
-	}, []);
+    // Determine status - use order status or derive from items
+    let orderStatus: OrderStatus = "pending";
+    if ("status" in apiOrder && apiOrder.status) {
+      orderStatus = apiOrder.status as OrderStatus;
+    } else if (apiOrder.items.length > 0 && apiOrder.items[0].status) {
+      orderStatus = apiOrder.items[0].status as OrderStatus;
+    }
 
-	useEffect(() => {
-		let filtered = [...orders];
+    return {
+      id: apiOrder.order_id.toString(),
+      orderNumber: `ORD-${apiOrder.order_id.toString().padStart(6, "0")}`,
+      customer: {
+        name: apiOrder.buyer_name,
+        email: apiOrder.buyer_email,
+        phone: undefined, // Not provided in API response
+      },
+      items: transformedItems,
+      subtotal: subtotal / 100, // Convert from kobo to naira if needed
+      shipping: shipping / 100,
+      tax: tax / 100,
+      total: total / 100,
+      status: orderStatus,
+      createdAt: new Date(apiOrder.created_at),
+      shippingAddress: {
+        name: apiOrder.buyer_name,
+        street: "", // Not provided in API
+        city: "",
+        state: "",
+        zipCode: "",
+        country: "Nigeria",
+        phone: undefined,
+      },
+      customerNotes: null,
+      trackingNumber: null,
+    };
+  };
 
-		// Search filter
-		if (filters.search) {
-			filtered = filtered.filter(order =>
-				order.orderNumber.toLowerCase().includes(filters.search.toLowerCase()) ||
-				order.customer.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-				order.customer.email.toLowerCase().includes(filters.search.toLowerCase())
-			);
-		}
+  // Function to fetch orders from API
+  const fetchOrders = async (): Promise<void> => {
+    try {
+      setLoading(true);
+      setError(null);
 
-		// Status filter
-		if (filters.status && filters.status !== 'all') {
-			filtered = filtered.filter(order => order.status === filters.status);
-		}
+      const token = getVendorToken();
+      if (!token) {
+        throw new Error("Vendor token not found. Please login again.");
+      }
 
-		// Date range filter
-		if (filters.dateRange.from) {
-			filtered = filtered.filter(order =>
-				new Date(order.createdAt) >= new Date(filters.dateRange.from)
-			);
-		}
-		if (filters.dateRange.to) {
-			filtered = filtered.filter(order =>
-				new Date(order.createdAt) <= new Date(filters.dateRange.to)
-			);
-		}
+      const response = await fetch(
+        "https://rsc-kl61.onrender.com/api/vendor/orders",
+        {
+          method: "GET",
+          headers: {
+            accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-		// Amount range filter
-		if (filters.amountRange.min) {
-			filtered = filtered.filter(order => order.total >= parseFloat(filters.amountRange.min));
-		}
-		if (filters.amountRange.max) {
-			filtered = filtered.filter(order => order.total <= parseFloat(filters.amountRange.max));
-		}
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("Authentication failed. Please login again.");
+        }
+        throw new Error(
+          `Failed to fetch orders: ${response.status} ${response.statusText}`
+        );
+      }
 
-		// Sort
-		filtered.sort((a, b) => {
-			switch (filters.sort) {
-				case 'oldest':
-					return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-				case 'amount_high':
-					return b.total - a.total;
-				case 'amount_low':
-					return a.total - b.total;
-				case 'newest':
-				default:
-					return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-			}
-		});
+      const data: ApiOrdersResponse = await response.json();
 
-		setFilteredOrders(filtered);
-	}, [orders, filters]);
+      // Transform API orders to component format
+      const transformedOrders = data.orders.map(
+        transformApiOrderToProductOrder
+      );
 
-	const handleFiltersChange = (newFilters: Filters): void => {
-		setFilters(newFilters);
-	};
+      setOrders(transformedOrders);
+      setFilteredOrders(transformedOrders);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to fetch orders";
+      setError(errorMessage);
+      console.error("Error fetching orders:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-	const handleClearFilters = (): void => {
-		setFilters({
-			search: '',
-			status: 'all',
-			sort: 'newest',
-			dateRange: { from: '', to: '' },
-			amountRange: { min: '', max: '' }
-		});
-	};
+  // Calculate statistics from real data
+  const calculateStatistics = (orders: ProductOrder[]): Statistics => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-	const handleOrderSelect = (orderId: string, isSelected: boolean): void => {
-		if (isSelected) {
-			setSelectedOrders([...selectedOrders, orderId]);
-		} else {
-			setSelectedOrders(selectedOrders.filter(id => id !== orderId));
-		}
-	};
+    const todayOrders = orders.filter((order) => {
+      const orderDate = new Date(order.createdAt);
+      orderDate.setHours(0, 0, 0, 0);
+      return orderDate.getTime() === today.getTime();
+    });
 
-	const handleSelectAll = (isSelected: boolean): void => {
-		if (isSelected) {
-			setSelectedOrders(filteredOrders.map(order => order.id));
-		} else {
-			setSelectedOrders([]);
-		}
-	};
+    const pendingOrders = orders.filter((order) => order.status === "pending");
+    const revenueToday = todayOrders.reduce(
+      (sum, order) => sum + order.total,
+      0
+    );
+    const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+    const avgOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
 
-	const handleStatusUpdate = (orderId: string, newStatus: OrderStatus): void => {
-		setOrders(orders.map(order =>
-			order.id === orderId ? { ...order, status: newStatus } : order
-		));
-	};
+    return {
+      totalOrders: orders.length,
+      ordersChange: 0, // Would need historical data to calculate
+      pendingOrders: pendingOrders.length,
+      pendingChange: 0, // Would need historical data to calculate
+      revenueToday: revenueToday,
+      revenueChange: 0, // Would need historical data to calculate
+      avgOrderValue: avgOrderValue,
+      avgOrderChange: 0, // Would need historical data to calculate
+    };
+  };
 
-	const handleBulkStatusUpdate = (newStatus: OrderStatus): void => {
-		setOrders(orders.map(order =>
-			selectedOrders.includes(order.id) ? { ...order, status: newStatus } : order
-		));
-		setSelectedOrders([]);
-	};
+  // Generate activities from orders
+  const generateActivities = (orders: ProductOrder[]): Activity[] => {
+    const activities: Activity[] = [];
 
-	const handleBulkExport = (format: ExportFormat): void => {
-		console.log(`Exporting ${selectedOrders.length} orders as ${format}`);
-		// Implementation would handle actual export
-	};
+    orders.slice(0, 4).forEach((order, index) => {
+      activities.push({
+        id: index + 1,
+        type: "order_placed",
+        title: "New Order Received",
+        description: `${order.customer.name} placed a new order`,
+        orderNumber: order.orderNumber,
+        status: order.status,
+        timestamp: order.createdAt.toISOString(),
+      });
+    });
 
-	const handleViewOrder = (order: ProductOrder): void => {
-		setSelectedOrder(order);
-		setIsModalOpen(true);
-	};
+    return activities;
+  };
 
-	const handleSendMessage = (orderId: string, message: string): void => {
-		console.log(`Sending message to order ${orderId}: ${message}`);
-		// Implementation would handle sending message
-	};
+  // Initial data fetch
+  useEffect(() => {
+    fetchOrders();
+  }, []);
 
-	const handleQuickAction = (actionId: string): void => {
-		console.log(`Quick action: ${actionId}`);
-		// Implementation would handle quick actions
-	};
+  // Filter effect
+  useEffect(() => {
+    let filtered = [...orders];
 
-	// if (userRole !== 'vendor') {
-	// 	return (
-	// 		<div className="min-h-screen bg-background flex items-center justify-center">
-	// 			<div className="text-center">
-	// 				<h1 className="text-2xl font-bold text-foreground mb-2">Access Denied</h1>
-	// 				<p className="text-muted-foreground">This page is only accessible to vendors.</p>
-	// 			</div>
-	// 		</div>
-	// 	);
-	// }
+    // Search filter
+    if (filters.search) {
+      filtered = filtered.filter(
+        (order) =>
+          order.orderNumber
+            .toLowerCase()
+            .includes(filters.search.toLowerCase()) ||
+          order.customer.name
+            .toLowerCase()
+            .includes(filters.search.toLowerCase()) ||
+          order.customer.email
+            .toLowerCase()
+            .includes(filters.search.toLowerCase())
+      );
+    }
 
-	return (
-		<div className="min-h-screen bg-background">
-			<div className="max-w-[85vw] mx-auto py-6 px-0 md:px-4">
-				{/* Header */}
-				<div className="mb-8">
-					<h1 className="text-3xl font-bold text-foreground mb-2">Order Management</h1>
-					<p className="text-muted-foreground">
-						Track, process, and fulfill customer orders efficiently
-					</p>
-				</div>
+    // Status filter
+    if (filters.status && filters.status !== "all") {
+      filtered = filtered.filter((order) => order.status === filters.status);
+    }
 
-				{/* Statistics */}
-				<OrderStatistics statistics={mockStatistics} />
+    // Date range filter
+    if (filters.dateRange.from) {
+      filtered = filtered.filter(
+        (order) => new Date(order.createdAt) >= new Date(filters.dateRange.from)
+      );
+    }
+    if (filters.dateRange.to) {
+      filtered = filtered.filter(
+        (order) => new Date(order.createdAt) <= new Date(filters.dateRange.to)
+      );
+    }
 
-				{/* Filters */}
-				<OrderFilters
-					filters={filters}
-					onFiltersChange={handleFiltersChange}
-					onClearFilters={handleClearFilters}
-				/>
+    // Amount range filter
+    if (filters.amountRange.min) {
+      filtered = filtered.filter(
+        (order) => order.total >= parseFloat(filters.amountRange.min)
+      );
+    }
+    if (filters.amountRange.max) {
+      filtered = filtered.filter(
+        (order) => order.total <= parseFloat(filters.amountRange.max)
+      );
+    }
 
-				{/* Bulk Actions */}
-				<BulkActionsToolbar
-					selectedCount={selectedOrders.length}
-					onBulkStatusUpdate={handleBulkStatusUpdate}
-					onBulkExport={handleBulkExport}
-					onClearSelection={() => setSelectedOrders([])}
-				/>
+    // Sort
+    filtered.sort((a, b) => {
+      switch (filters.sort) {
+        case "oldest":
+          return (
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
+        case "amount_high":
+          return b.total - a.total;
+        case "amount_low":
+          return a.total - b.total;
+        case "newest":
+        default:
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+      }
+    });
 
-				<div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-					{/* Main Content */}
-					<div className="xl:col-span-3">
-						<OrderTable
-							orders={filteredOrders}
-							selectedOrders={selectedOrders}
-							onOrderSelect={handleOrderSelect}
-							onSelectAll={handleSelectAll}
-							onStatusUpdate={handleStatusUpdate}
-							onViewOrder={handleViewOrder}
-						/>
-					</div>
+    setFilteredOrders(filtered);
+  }, [orders, filters]);
 
-					{/* Sidebar */}
-					<div className="space-y-6">
-						<QuickActions onAction={handleQuickAction} />
-						<RecentActivityFeed activities={mockActivities} />
-					</div>
-				</div>
+  const handleFiltersChange = (newFilters: Filters): void => {
+    setFilters(newFilters);
+  };
 
-				{/* Order Detail Modal */}
-				<OrderDetailModal
-					order={selectedOrder}
-					isOpen={isModalOpen}
-					onClose={() => setIsModalOpen(false)}
-					onStatusUpdate={handleStatusUpdate}
-					onSendMessage={handleSendMessage}
-				/>
-			</div>
-		</div>
-	);
+  const handleClearFilters = (): void => {
+    setFilters({
+      search: "",
+      status: "all",
+      sort: "newest",
+      dateRange: { from: "", to: "" },
+      amountRange: { min: "", max: "" },
+    });
+  };
+
+  const handleOrderSelect = (orderId: string, isSelected: boolean): void => {
+    if (isSelected) {
+      setSelectedOrders([...selectedOrders, orderId]);
+    } else {
+      setSelectedOrders(selectedOrders.filter((id) => id !== orderId));
+    }
+  };
+
+  const handleSelectAll = (isSelected: boolean): void => {
+    if (isSelected) {
+      setSelectedOrders(filteredOrders.map((order) => order.id));
+    } else {
+      setSelectedOrders([]);
+    }
+  };
+
+  const handleStatusUpdate = async (
+    orderId: string,
+    newStatus: OrderStatus
+  ): Promise<void> => {
+    try {
+      // Update local state immediately for better UX
+      setOrders(
+        orders.map((order) =>
+          order.id === orderId ? { ...order, status: newStatus } : order
+        )
+      );
+
+      // Here you would typically make an API call to update the status on the server
+      const token = getVendorToken();
+      if (token) {
+        // Example API call (adjust endpoint as needed):
+        // await fetch(`https://rsc-kl61.onrender.com/api/vendor/orders/${orderId}/status`, {
+        //   method: 'PUT',
+        //   headers: {
+        //     'Content-Type': 'application/json',
+        //     'Authorization': `Bearer ${token}`
+        //   },
+        //   body: JSON.stringify({ status: newStatus })
+        // });
+      }
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      // Revert the local change if API call fails
+      fetchOrders(); // Refresh data
+    }
+  };
+
+  const handleBulkStatusUpdate = (newStatus: OrderStatus): void => {
+    setOrders(
+      orders.map((order) =>
+        selectedOrders.includes(order.id)
+          ? { ...order, status: newStatus }
+          : order
+      )
+    );
+    setSelectedOrders([]);
+  };
+
+  const handleBulkExport = (format: ExportFormat): void => {
+    console.log(`Exporting ${selectedOrders.length} orders as ${format}`);
+    // Implementation would handle actual export
+  };
+
+  const handleViewOrder = (order: ProductOrder): void => {
+    setSelectedOrder(order);
+    setIsModalOpen(true);
+  };
+
+  const handleSendMessage = (orderId: string, message: string): void => {
+    console.log(`Sending message to order ${orderId}: ${message}`);
+    // Implementation would handle sending message
+  };
+
+  const handleQuickAction = (actionId: string): void => {
+    if (actionId === "refresh") {
+      fetchOrders();
+    } else {
+      console.log(`Quick action: ${actionId}`);
+    }
+  };
+
+  const handleRetry = (): void => {
+    fetchOrders();
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-foreground mb-2">
+            Loading Orders...
+          </h2>
+          <p className="text-muted-foreground">
+            Please wait while we fetch your orders
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <div className="bg-destructive/10 text-destructive p-4 rounded-lg mb-4">
+            <h2 className="text-xl font-semibold mb-2">Error Loading Orders</h2>
+            <p className="text-sm">{error}</p>
+          </div>
+          <button
+            onClick={handleRetry}
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate dynamic statistics and activities
+  const statistics = calculateStatistics(orders);
+  const activities = generateActivities(orders);
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-[85vw] mx-auto py-6 px-0 md:px-4">
+        {/* Header */}
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              Order Management
+            </h1>
+            <p className="text-muted-foreground">
+              Track, process, and fulfill customer orders efficiently
+            </p>
+          </div>
+          <button
+            onClick={() => fetchOrders()}
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            Refresh
+          </button>
+        </div>
+
+        {/* Statistics */}
+        <OrderStatistics statistics={statistics} />
+
+        {/* Filters */}
+        <OrderFilters
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+          onClearFilters={handleClearFilters}
+        />
+
+        {/* Bulk Actions */}
+        <BulkActionsToolbar
+          selectedCount={selectedOrders.length}
+          onBulkStatusUpdate={handleBulkStatusUpdate}
+          onBulkExport={handleBulkExport}
+          onClearSelection={() => setSelectedOrders([])}
+        />
+
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+          {/* Main Content */}
+          <div className="xl:col-span-3">
+            {orders.length === 0 ? (
+              <div className="bg-card rounded-lg border p-8 text-center">
+                <div className="text-muted-foreground mb-4">
+                  <svg
+                    className="w-16 h-16 mx-auto mb-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1}
+                      d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                    />
+                  </svg>
+                  <h3 className="text-xl font-semibold text-foreground mb-2">
+                    No Orders Found
+                  </h3>
+                  <p>
+                    You don't have any orders yet. Orders will appear here once
+                    customers start purchasing your products.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <OrderTable
+                orders={filteredOrders}
+                selectedOrders={selectedOrders}
+                onOrderSelect={handleOrderSelect}
+                onSelectAll={handleSelectAll}
+                onStatusUpdate={handleStatusUpdate}
+                onViewOrder={handleViewOrder}
+              />
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            <QuickActions onAction={handleQuickAction} />
+            <RecentActivityFeed activities={activities} />
+          </div>
+        </div>
+
+        {/* Order Detail Modal */}
+        <OrderDetailModal
+          order={selectedOrder}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onStatusUpdate={handleStatusUpdate}
+          onSendMessage={handleSendMessage}
+        />
+      </div>
+    </div>
+  );
 };
 
 export default OrderManagement;
