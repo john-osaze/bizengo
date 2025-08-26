@@ -1,3 +1,4 @@
+"use client";
 // ActionBar.tsx
 import React from "react";
 import { ShoppingCart, Heart, MessageCircle } from "lucide-react";
