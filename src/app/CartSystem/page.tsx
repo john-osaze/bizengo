@@ -25,22 +25,18 @@ interface CartItem {
   };
 }
 
-interface CartResponse {
-  items: CartItem[];
-  total_items: number;
-  total_price: number;
-}
-
 interface Notification {
   id: string;
   type: "success" | "error" | "info";
   message: string;
 }
+
 interface CartSystemProps {
   isOpen: boolean;
   onClose: () => void;
 }
-// Notification Component
+
+// ✅ Notification Component
 const NotificationToast: React.FC<{
   notification: Notification;
   onClose: (id: string) => void;
@@ -88,7 +84,7 @@ const NotificationToast: React.FC<{
   );
 };
 
-// Cart Component
+// ✅ Cart Component
 const CartSystem: React.FC<CartSystemProps> = ({ isOpen, onClose }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [totalItems, setTotalItems] = useState(0);
@@ -137,7 +133,6 @@ const CartSystem: React.FC<CartSystemProps> = ({ isOpen, onClose }) => {
       );
     }
 
-    // Some endpoints might return empty responses
     const contentType = response.headers.get("content-type");
     if (contentType && contentType.includes("application/json")) {
       return await response.json();
@@ -146,17 +141,15 @@ const CartSystem: React.FC<CartSystemProps> = ({ isOpen, onClose }) => {
   };
 
   // Fetch cart items
-  // Fetch cart items
   const fetchCart = async () => {
     try {
       setIsLoading(true);
       const data = await apiCall("https://rsc-kl61.onrender.com/api/cart");
 
-      // Transform API response to match frontend interface
       const mappedItems: CartItem[] = (data.cart_items || []).map(
         (item: any) => ({
           id: item.id,
-          product_id: item.id, // or use separate product_id if API has it
+          product_id: item.id,
           quantity: item.quantity,
           product: {
             id: item.id,
@@ -182,28 +175,6 @@ const CartSystem: React.FC<CartSystemProps> = ({ isOpen, onClose }) => {
       setCartItems([]);
       setTotalItems(0);
       setTotalPrice(0);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Add item to cart
-  const addToCart = async (productId: number, quantity: number = 1) => {
-    try {
-      setIsLoading(true);
-      await apiCall("https://rsc-kl61.onrender.com/api/cart/add", {
-        method: "POST",
-        body: JSON.stringify({
-          product_id: productId,
-          quantity: quantity,
-        }),
-      });
-
-      addNotification("success", "Item added to cart successfully!");
-      await fetchCart(); // Refresh cart
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-      addNotification("error", "Failed to add item to cart");
     } finally {
       setIsLoading(false);
     }
