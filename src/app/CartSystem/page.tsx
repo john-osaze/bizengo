@@ -85,7 +85,8 @@ const NotificationToast: React.FC<{
 };
 
 // ✅ Cart Component
-const CartSystem: React.FC<CartSystemProps> = ({ isOpen, onClose }) => {
+
+export default function CartSystem({ isOpen, onClose }: CartSystemProps) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
@@ -400,6 +401,4 @@ const CartSystem: React.FC<CartSystemProps> = ({ isOpen, onClose }) => {
       )}
     </>
   );
-};
-
-export default CartSystem;
+}

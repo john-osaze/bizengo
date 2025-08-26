@@ -631,6 +631,7 @@ const Header: React.FC = () => {
           </div>
         </div>
       </div>
+
       <CartSystem isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </header>
   );
