@@ -80,7 +80,7 @@ const NotificationToast: React.FC<{
 };
 
 // Main Cart Page Component (no props required)
-export default function CartPage() {
+export default function CartSystem() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
@@ -346,7 +346,10 @@ export default function CartPage() {
 
                       <div className="text-right">
                         <p className="font-bold text-lg">
-                          ₦{(item.quantity * item.product.product_price).toLocaleString()}
+                          ₦
+                          {(
+                            item.quantity * item.product.product_price
+                          ).toLocaleString()}
                         </p>
                       </div>
                     </div>

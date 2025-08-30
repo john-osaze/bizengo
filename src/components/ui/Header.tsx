@@ -7,7 +7,7 @@ import Icon from "./AppIcon"; // Adjust path as needed
 import Link from "next/link";
 import { ShoppingCart, Store, X } from "lucide-react";
 import "./custom.css";
-import CartSystem from "@/app/CartSystem/page";
+import CartSystem from "../../app/CartSystem/page";
 type OptionType = "shopping" | "vendor" | null;
 
 interface ModalOption {
