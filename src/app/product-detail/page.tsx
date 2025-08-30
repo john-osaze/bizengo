@@ -8,7 +8,8 @@ import LocationMap from "./components/LocationMap";
 import SellerCard from "./components/SellerCard";
 import SimilarProducts from "./components/SimilarProducts";
 import PriceComparison from "./components/PriceComparison";
-import ActionBar from "../actionBar/page";
+// import ActionBar from "../actionBar/page";
+import ActionBar from "./components/ActionBar";
 import { CheckCircle, AlertCircle, X } from "lucide-react";
 import { Product, Seller, ProductLocation } from "@/types/types";
 
