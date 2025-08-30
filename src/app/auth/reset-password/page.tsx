@@ -1,275 +1,248 @@
-"use client"
-import { ArrowLeft, Sparkles } from 'lucide-react';
-import Link from 'next/link';
-import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+"use client";
+import { ArrowLeft, Lock, Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Label } from '@/components/ui/label';
-import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp";
-import axios from 'axios';
+import { Label } from "@/components/ui/label";
 
-const passwordStrength = (password: string): number => {
-    let score = 0;
-    if (password.length >= 8) {
-        score++;
-    }
-    if (password.match(/[a-z]+/)) {
-        score++;
-    }
-    if (password.match(/[A-Z]+/)) {
-        score++;
-    }
-    if (password.match(/[0-9]+/)) {
-        score++;
-    }
-    if (password.match(/[^a-zA-Z0-9]+/)) {
-        score++;
-    }
-
-    return score;
-};
-
-const PasswordStrengthBar = ({ strength, password }: { strength: number; password: string }) => {
-    let color = 'red';
-    let strengthText = 'Poor';
-    if (strength >= 2) {
-        color = 'yellow';
-        strengthText = 'Weak';
-    }
-    if (strength >= 4) {
-        color = 'green';
-        strengthText = 'Strong';
-    }
-
-    return (
-        <div className='mt-1'>
-            {password && (
-                <div className={`text-xs ${strengthText === "Poor" ? "text-red-600" : strengthText === "Weak" ? "text-yellow-500" : strengthText === "Strong" ? "text-green-600" : "text-gray-500"} mb-1`}>{strengthText}</div>
-            )}
-            {password && (
-                <div className="h-1 w-full bg-gray-200 rounded-full mt-1">
-                    <div
-                        className={`h-full rounded-full transition-all duration-300`}
-                        style={{ width: `${Math.min(strength * 25, 100)}%`, backgroundColor: color }}
-                    ></div>
-                </div>
-            )}
+export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center">
+          <div>Loading...</div>
         </div>
-    );
-};
-
-
-const ResetPassword = () => {
-    const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
-    const [passwordStrengthScore, setPasswordStrengthScore] = useState(0);
-    const [passwordsMatch, setPasswordsMatch] = useState(true);
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const email = searchParams.get("email");
-    const [otp, setOtp] = useState("");
-
-    useEffect(() => {
-        if (!email) {
-            toast({
-                title: "Error",
-                description: "Something happened. Can't find your email.",
-                variant: "destructive",
-            });
-            router.push("/tools/auth/forgot-password/");
-        }
-    }, [email, otp, router]);
-
-    useEffect(() => {
-        setPasswordStrengthScore(passwordStrength(password));
-    }, [password]);
-
-    useEffect(() => {
-        if (confirmPassword) {
-            setPasswordsMatch(password === confirmPassword);
-        } else {
-            setPasswordsMatch(true);
-        }
-
-    }, [password, confirmPassword]);
-
-    const handleOtpChange = (otpValue: string) => {
-        setOtp(otpValue);
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!email || !otp) {
-            toast({
-                title: "Error",
-                description: "Invalid reset link.",
-                variant: "destructive",
-            });
-            return;
-        }
-
-        if (password !== confirmPassword) {
-            toast({
-                title: "Error",
-                description: "Passwords do not match.",
-                variant: "destructive",
-            });
-            return;
-        }
-
-        if (password.length < 8) {
-            toast({
-                title: "Error",
-                description: "Password must be at least 8 characters long.",
-                variant: "destructive",
-            });
-            return;
-        }
-
-        if (passwordStrengthScore < 3) {
-            toast({
-                title: "Error",
-                description: "Password is not strong enough.",
-                variant: "destructive",
-            });
-            return;
-        }
-
-
-        try {
-            const payload = {
-                "email": email,
-                "password": password,
-                "otp": otp
-            };
-            const response = await axios.post("https://api.rootsnsquares.com/innovations/reset-password.php", payload);
-
-            if (response.status === 200) {
-                toast({
-                    title: "Success",
-                    description: "Password reset successfully. You will be redirected to login page in 2 seconds.",
-                });
-                setTimeout(() => {
-                    router.push("/tools/auth/login/");
-                }, 2000);
-            } else {
-                toast({
-                    title: "Error",
-                    description: "Password reset failed. Please try again.",
-                    variant: "destructive",
-                });
-            }
-        } catch (error) {
-            toast({
-                title: "Error",
-                description: "An unexpected error occurred. Please try again later.",
-                variant: "destructive",
-            });
-        }
-    };
-
-
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center p-4">
-            <div className="w-full max-w-md">
-                <div className="mb-8">
-                    <Link
-                        href="/tools"
-                        className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                    >
-                        <ArrowLeft className="h-4 w-4" />
-                        Back to Home
-                    </Link>
-                </div>
-
-                <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
-                    <CardHeader className="text-center pb-2">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-                            <Sparkles className="h-6 w-6 text-white" />
-                        </div>
-                        <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
-                        <CardDescription>Enter the otp from your mail and your new password.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-
-
-
-                        <div className="flex justify-center">
-                            <InputOTP maxLength={6} onChange={handleOtpChange}>
-                                <InputOTPGroup>
-                                    <InputOTPSlot index={0} />
-                                    <InputOTPSlot index={1} />
-                                    <InputOTPSlot index={2} />
-                                </InputOTPGroup>
-                                <InputOTPSeparator />
-                                <InputOTPGroup>
-                                    <InputOTPSlot index={3} />
-                                    <InputOTPSlot index={4} />
-                                    <InputOTPSlot index={5} />
-                                </InputOTPGroup>
-                            </InputOTP>
-                        </div>
-
-
-
-
-
-
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <Label htmlFor="password">New Password</Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    placeholder="Enter new password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                />
-                                <PasswordStrengthBar strength={passwordStrengthScore} password={password} />
-                            </div>
-                            <div>
-                                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                                <Input
-                                    id="confirmPassword"
-                                    type="password"
-                                    placeholder="Confirm new password"
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                    required
-                                />
-                                {!passwordsMatch && (
-                                    <p className="text-xs text-red-500 mt-1">Passwords do not match.</p>
-                                )}
-                                {passwordsMatch && confirmPassword && (
-                                    <p className="text-xs text-green-500 mt-1">Passwords match!</p>
-                                )}
-                            </div>
-                            <Button type="submit" className="w-full">Reset Password</Button>
-                        </form>
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
-    );
+      }
+    >
+      <ResetPasswordContent />
+    </Suspense>
+  );
 }
 
-const ResetPasswordPage = () => {
-    return (
-        <Suspense fallback={<div>Loading...</div>}>
-            <ResetPassword />
-        </Suspense>
-    );
-};
+function ResetPasswordContent() {
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-export default ResetPasswordPage;
+  useEffect(() => {
+    const emailParam = searchParams.get("email");
+    const codeParam = searchParams.get("code");
+
+    if (emailParam && codeParam) {
+      setEmail(emailParam);
+      setCode(codeParam);
+    } else {
+      // Redirect back to forgot password if missing params
+      router.push("/tools/auth/forgot-password");
+    }
+  }, [searchParams, router]);
+
+  const validatePassword = (password: string) => {
+    const minLength = 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasNonalphas = /\W/.test(password);
+
+    if (password.length < minLength) {
+      return "Password must be at least 8 characters long.";
+    }
+    if (!hasUpperCase) {
+      return "Password must contain at least one uppercase letter.";
+    }
+    if (!hasLowerCase) {
+      return "Password must contain at least one lowercase letter.";
+    }
+    if (!hasNumbers) {
+      return "Password must contain at least one number.";
+    }
+    if (!hasNonalphas) {
+      return "Password must contain at least one special character.";
+    }
+    return null;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      toast({
+        variant: "destructive",
+        title: "Invalid password",
+        description: passwordError,
+      });
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "Passwords don't match",
+        description: "Please make sure both passwords are identical.",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(
+        "https://server.bizengo.com/api/auth/reset-password",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            accept: "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            code,
+            password,
+            confirmPassword,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Password reset successful",
+          description:
+            "Your password has been updated. Redirecting to login...",
+        });
+        // Redirect to login after success
+        setTimeout(() => {
+          router.push("/tools/auth/login");
+        }, 2000);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Reset failed",
+          description:
+            data.message || "Failed to reset password. Please try again.",
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "An unexpected error occurred. Please try again later.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="mb-8">
+          <Link
+            href="/tools/auth/verify-reset-code"
+            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Verification
+          </Link>
+        </div>
+
+        <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
+          <CardHeader className="text-center pb-2">
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <Lock className="h-6 w-6 text-white" />
+            </div>
+            <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
+            <CardDescription>Enter your new password below.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="password">New Password</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter new password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    disabled={isLoading}
+                    className="pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-gray-400" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-gray-400" />
+                    )}
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Password must be at least 8 characters with uppercase,
+                  lowercase, number and special character.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    disabled={isLoading}
+                    className="pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4 text-gray-400" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-gray-400" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Resetting..." : "Reset Password"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
