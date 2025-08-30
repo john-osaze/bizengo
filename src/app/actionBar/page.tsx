@@ -60,3 +60,7 @@
 //     </div>
 //   );
 // }
+
+export const ActionBar = () => {
+  return <div>page</div>;
+};
