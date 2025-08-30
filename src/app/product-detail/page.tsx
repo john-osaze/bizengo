@@ -9,7 +9,7 @@ import SellerCard from "./components/SellerCard";
 import SimilarProducts from "./components/SimilarProducts";
 import PriceComparison from "./components/PriceComparison";
 // import ActionBar from "../actionBar/page";
-import ActionBar from "./components/ActionBar";
+// import ActionBar from "./components/ActionBar";
 import { CheckCircle, AlertCircle, X } from "lucide-react";
 import { Product, Seller, ProductLocation } from "@/types/types";
 
@@ -519,7 +519,7 @@ Battery health is at 95% and the device has never been dropped or damaged. All f
             />
           </div>
         </div>
-
+        {/* 
         <ActionBar
           product={product}
           cartQuantity={cartQuantity}
@@ -527,7 +527,7 @@ Battery health is at 95% and the device has never been dropped or damaged. All f
           onBuyNow={handleBuyNow}
           onWishlistToggle={handleWishlistToggle}
           isWishlisted={isWishlisted}
-        />
+        /> */}
       </div>
     </div>
   );
