@@ -177,17 +177,14 @@ const Settings = ({ userProfile, onUpdateProfile }: SettingsProps) => {
         formData.append("proof_of_address", selectedKycFiles.proofOfAddress);
       }
 
-      const response = await fetch(
-        "https://rsc-kl61.onrender.com/api/user/kyc",
-        {
-          method: "POST",
-          headers: {
-            accept: "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        }
-      );
+      const response = await fetch("https://server.bizengo.com/api/user/kyc", {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
 
       if (!response.ok) {
         throw new Error(`Error: ${response.status} ${response.statusText}`);

@@ -49,7 +49,7 @@ const VendorHeader: React.FC<VendorHeaderProps> = ({
       const fetchProfile = async () => {
         try {
           const res = await fetch(
-            "https://rsc-kl61.onrender.com/api/user/profile",
+            "https://server.bizengo.com/api/user/profile",
             {
               headers: {
                 accept: "application/json",

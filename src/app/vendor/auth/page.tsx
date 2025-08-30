@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, ChangeEvent, FormEvent } from "react";
+import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,8 @@ import {
   XCircle,
   AlertTriangle,
   X,
+  MapPin,
+  Locate,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Link from "next/link";
@@ -75,6 +77,13 @@ interface LoginRequest {
   password: string;
 }
 
+interface LocationData {
+  country: string;
+  state?: string;
+  city?: string;
+  countryCode?: string;
+}
+
 // Constants
 const businessTypes = [
   { value: "restaurant", label: "Restaurant" },
@@ -88,23 +97,72 @@ const businessTypes = [
   { value: "other", label: "Other" },
 ];
 
-const countries = [{ value: "Nigeria", label: "Nigeria" }];
-
-const nigerianStates = [
-  { value: "Lagos", label: "Lagos" },
-  { value: "Abuja", label: "Abuja" },
-  { value: "Kano", label: "Kano" },
-  { value: "Rivers", label: "Rivers" },
-  { value: "Oyo", label: "Oyo" },
-  { value: "Delta", label: "Delta" },
-  { value: "Kaduna", label: "Kaduna" },
-  { value: "Edo", label: "Edo" },
-  { value: "Plateau", label: "Plateau" },
-  { value: "Kwara", label: "Kwara" },
+const countries = [
+  { value: "Nigeria", label: "Nigeria", code: "NG" },
+  { value: "Ghana", label: "Ghana", code: "GH" },
+  { value: "Kenya", label: "Kenya", code: "KE" },
+  { value: "South Africa", label: "South Africa", code: "ZA" },
+  { value: "United States", label: "United States", code: "US" },
+  { value: "United Kingdom", label: "United Kingdom", code: "GB" },
+  { value: "Canada", label: "Canada", code: "CA" },
 ];
 
+const statesByCountry: Record<
+  string,
+  Array<{ value: string; label: string }>
+> = {
+  Nigeria: [
+    { value: "Lagos", label: "Lagos" },
+    { value: "Abuja", label: "Abuja" },
+    { value: "Kano", label: "Kano" },
+    { value: "Rivers", label: "Rivers" },
+    { value: "Oyo", label: "Oyo" },
+    { value: "Delta", label: "Delta" },
+    { value: "Kaduna", label: "Kaduna" },
+    { value: "Edo", label: "Edo" },
+    { value: "Plateau", label: "Plateau" },
+    { value: "Kwara", label: "Kwara" },
+  ],
+  Ghana: [
+    { value: "Greater Accra", label: "Greater Accra" },
+    { value: "Ashanti", label: "Ashanti" },
+    { value: "Northern", label: "Northern" },
+    { value: "Western", label: "Western" },
+  ],
+  Kenya: [
+    { value: "Nairobi", label: "Nairobi" },
+    { value: "Mombasa", label: "Mombasa" },
+    { value: "Kisumu", label: "Kisumu" },
+    { value: "Nakuru", label: "Nakuru" },
+  ],
+  "South Africa": [
+    { value: "Gauteng", label: "Gauteng" },
+    { value: "Western Cape", label: "Western Cape" },
+    { value: "KwaZulu-Natal", label: "KwaZulu-Natal" },
+    { value: "Eastern Cape", label: "Eastern Cape" },
+  ],
+  "United States": [
+    { value: "California", label: "California" },
+    { value: "New York", label: "New York" },
+    { value: "Texas", label: "Texas" },
+    { value: "Florida", label: "Florida" },
+  ],
+  "United Kingdom": [
+    { value: "England", label: "England" },
+    { value: "Scotland", label: "Scotland" },
+    { value: "Wales", label: "Wales" },
+    { value: "Northern Ireland", label: "Northern Ireland" },
+  ],
+  Canada: [
+    { value: "Ontario", label: "Ontario" },
+    { value: "Quebec", label: "Quebec" },
+    { value: "British Columbia", label: "British Columbia" },
+    { value: "Alberta", label: "Alberta" },
+  ],
+};
+
 // API Service
-const API_BASE_URL = "https://rsc-kl61.onrender.com/api";
+const API_BASE_URL = "https://server.bizengo.com/api";
 
 const vendorAuthService = {
   signup: async (data: VendorSignupRequest) => {
@@ -143,6 +201,100 @@ const vendorAuthService = {
     }
 
     return response.json();
+  },
+};
+
+// Location Detection Service
+const locationService = {
+  // Method 1: IP-based location detection using ipapi.co
+  detectLocationByIP: async (): Promise<LocationData | null> => {
+    try {
+      const response = await fetch("https://ipapi.co/json/", {
+        method: "GET",
+        headers: {
+          "User-Agent": "VendorApp/1.0",
+        },
+      });
+
+      if (!response.ok) throw new Error("IP location failed");
+
+      const data = await response.json();
+
+      return {
+        country: data.country_name || "",
+        state: data.region || "",
+        city: data.city || "",
+        countryCode: data.country_code || "",
+      };
+    } catch (error) {
+      console.error("IP location detection failed:", error);
+      return null;
+    }
+  },
+
+  // Method 2: Browser geolocation API
+  detectLocationByGeolocation: async (): Promise<LocationData | null> => {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        resolve(null);
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const { latitude, longitude } = position.coords;
+
+            // Use reverse geocoding with OpenStreetMap Nominatim
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
+              {
+                headers: {
+                  "User-Agent": "VendorApp/1.0",
+                },
+              }
+            );
+
+            if (!response.ok) throw new Error("Geocoding failed");
+
+            const data = await response.json();
+            const address = data.address || {};
+
+            resolve({
+              country: address.country || "",
+              state: address.state || address.region || "",
+              city: address.city || address.town || address.village || "",
+              countryCode: address.country_code?.toUpperCase() || "",
+            });
+          } catch (error) {
+            console.error("Geolocation reverse geocoding failed:", error);
+            resolve(null);
+          }
+        },
+        (error) => {
+          console.error("Geolocation failed:", error);
+          resolve(null);
+        },
+        {
+          timeout: 10000,
+          enableHighAccuracy: false,
+          maximumAge: 300000, // 5 minutes
+        }
+      );
+    });
+  },
+
+  // Combined location detection
+  detectLocation: async (): Promise<LocationData | null> => {
+    // Try IP-based detection first (faster)
+    let location = await locationService.detectLocationByIP();
+
+    // If IP detection fails, try geolocation
+    if (!location) {
+      location = await locationService.detectLocationByGeolocation();
+    }
+
+    return location;
   },
 };
 
@@ -247,6 +399,9 @@ const VendorAuth: React.FC = () => {
   const router = useRouter();
   const [isLogin, setIsLogin] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isDetectingLocation, setIsDetectingLocation] =
+    useState<boolean>(false);
+  const [locationDetected, setLocationDetected] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [formData, setFormData] = useState<FormData>({
     email: "",
@@ -257,7 +412,7 @@ const VendorAuth: React.FC = () => {
     phone: "",
     businessType: "",
     confirmPassword: "",
-    country: "Nigeria", // Default to Nigeria
+    country: "",
     state: "",
     referralCode: "",
   });
@@ -271,6 +426,100 @@ const VendorAuth: React.FC = () => {
     message: "",
     show: false,
   });
+
+  // Auto-detect location on component mount for signup mode
+  useEffect(() => {
+    if (!isLogin && !locationDetected) {
+      autoDetectLocation();
+    }
+  }, [isLogin, locationDetected]);
+
+  // Auto-detect location function
+  const autoDetectLocation = async () => {
+    setIsDetectingLocation(true);
+
+    try {
+      const location = await locationService.detectLocation();
+
+      if (location && location.country) {
+        // Find matching country in our list
+        const matchingCountry = countries.find(
+          (country) =>
+            country.label.toLowerCase() === location.country.toLowerCase() ||
+            country.code === location.countryCode
+        );
+
+        if (matchingCountry) {
+          setFormData((prev) => ({
+            ...prev,
+            country: matchingCountry.value,
+            state: "", // Reset state when country changes
+          }));
+
+          // Try to match state if available
+          if (location.state && statesByCountry[matchingCountry.value]) {
+            const matchingState = statesByCountry[matchingCountry.value].find(
+              (state) =>
+                state.label.toLowerCase() === location.state!.toLowerCase()
+            );
+
+            if (matchingState) {
+              setFormData((prev) => ({
+                ...prev,
+                state: matchingState.value,
+              }));
+            }
+          }
+
+          setLocationDetected(true);
+          showNotification(
+            "success",
+            `Location detected: ${matchingCountry.label}${
+              location.state ? `, ${location.state}` : ""
+            }`
+          );
+        } else {
+          // Default to Nigeria if country not in our list
+          setFormData((prev) => ({
+            ...prev,
+            country: "Nigeria",
+          }));
+          showNotification(
+            "info",
+            `Location detected (${location.country}), but defaulting to Nigeria. Please update if needed.`
+          );
+        }
+      } else {
+        // Default to Nigeria if detection fails
+        setFormData((prev) => ({
+          ...prev,
+          country: "Nigeria",
+        }));
+        showNotification(
+          "info",
+          "Could not detect location. Defaulted to Nigeria. Please update if needed."
+        );
+      }
+    } catch (error) {
+      console.error("Location detection failed:", error);
+      // Default to Nigeria on error
+      setFormData((prev) => ({
+        ...prev,
+        country: "Nigeria",
+      }));
+      showNotification(
+        "info",
+        "Location detection failed. Defaulted to Nigeria. Please update if needed."
+      );
+    } finally {
+      setIsDetectingLocation(false);
+    }
+  };
+
+  // Manual location detection
+  const manualDetectLocation = async () => {
+    await autoDetectLocation();
+  };
 
   // Show notification function
   const showNotification = (
@@ -296,16 +545,49 @@ const VendorAuth: React.FC = () => {
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+
+    // Reset state when country changes
+    if (name === "country") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+        state: "", // Reset state
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+
     if (errors[name as keyof Errors]) {
       setErrors((prev) => ({
         ...prev,
         [name]: "",
       }));
     }
+  };
+
+  // Toggle between login and signup
+  const toggleAuthMode = () => {
+    setIsLogin(!isLogin);
+    setErrors({});
+    setLocationDetected(false);
+
+    // Reset form when switching modes
+    setFormData({
+      email: "",
+      password: "",
+      businessName: "",
+      firstName: "",
+      lastName: "",
+      phone: "",
+      businessType: "",
+      confirmPassword: "",
+      country: "",
+      state: "",
+      referralCode: "",
+    });
   };
 
   const validateForm = (): boolean => {
@@ -355,6 +637,26 @@ const VendorAuth: React.FC = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+  // Simple password strength function (0–4 score)
+  const getPasswordStrengthScore = (password: string): number => {
+    let score = 0;
+    if (!password) return score;
+
+    // length
+    if (password.length >= 8) score++;
+    if (password.length >= 12) score++;
+
+    // contains lower + upper
+    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
+
+    // contains number
+    if (/\d/.test(password)) score++;
+
+    // contains special char
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+
+    return Math.min(score, 4); // max 4
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -368,6 +670,7 @@ const VendorAuth: React.FC = () => {
 
     try {
       if (isLogin) {
+        // ========== LOGIN ==========
         showNotification("info", "Signing you in, please wait...");
 
         const loginData: LoginRequest = {
@@ -380,7 +683,6 @@ const VendorAuth: React.FC = () => {
         const response = await vendorAuthService.login(loginData);
         console.log("Login response:", response);
 
-        // Store auth data (adjust based on your API response structure)
         const vendorData = {
           id:
             response.vendor?.id || response.user?.id || "vendor_" + Date.now(),
@@ -413,7 +715,7 @@ const VendorAuth: React.FC = () => {
             response.user?.created_at ||
             new Date().toISOString(),
           profileComplete: 100,
-          token: response.token || response.access_token, // Store auth token if provided
+          token: response.token || response.access_token,
         };
 
         if (typeof window !== "undefined") {
@@ -425,7 +727,6 @@ const VendorAuth: React.FC = () => {
           }
         }
 
-        // Close info modal first
         closeNotification();
 
         setTimeout(() => {
@@ -433,16 +734,53 @@ const VendorAuth: React.FC = () => {
             "success",
             "Login successful! You're being redirected to your dashboard."
           );
-
-          // Redirect after showing success message
           setTimeout(() => {
             router.push("../dashboard");
           }, 2000);
         }, 500);
       } else {
-        showNotification("info", "Creating your account, please wait...");
+        // ========== SIGNUP ==========
+        // Validation
+        if (formData.password !== formData.confirmPassword) {
+          showNotification(
+            "error",
+            "Passwords do not match. Please check and try again."
+          );
+          setIsLoading(false);
+          return;
+        }
 
-        const signupData: VendorSignupRequest = {
+        if (getPasswordStrengthScore(formData.password) < 3) {
+          showNotification(
+            "error",
+            "Please create a stronger password with at least 8 characters, including uppercase, lowercase, numbers, and special characters."
+          );
+          setIsLoading(false);
+          return;
+        }
+
+        if (
+          !formData.firstName ||
+          !formData.lastName ||
+          !formData.businessName ||
+          !formData.businessType ||
+          !formData.email ||
+          !formData.phone ||
+          !formData.country ||
+          !formData.state
+        ) {
+          showNotification("error", "Please fill in all required fields.");
+          setIsLoading(false);
+          return;
+        }
+
+        // Show loading notification
+        showNotification(
+          "info",
+          "Please wait while we set up your account. This may take a few moments..."
+        );
+
+        const requestBody: VendorSignupRequest = {
           business_name: formData.businessName,
           business_type: formData.businessType,
           country: formData.country,
@@ -457,81 +795,141 @@ const VendorAuth: React.FC = () => {
           }),
         };
 
-        console.log("Signup request:", signupData);
+        console.log("Sending vendor signup request...", requestBody);
 
-        const response = await vendorAuthService.signup(signupData);
-        console.log("Signup response:", response);
-
-        // Store vendor data
-        const vendorData = {
-          id: response.vendor?.id || "vendor_" + Date.now(),
-          email: response.vendor?.email || formData.email,
-          businessName: response.vendor?.business_name || formData.businessName,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          phone: formData.phone,
-          businessType: formData.businessType,
-          country: formData.country,
-          state: formData.state,
-          isVerified: false,
-          joinDate: new Date().toISOString(),
-          profileComplete: 50,
-          token: response.token || response.access_token,
-        };
-
-        if (typeof window !== "undefined") {
-          localStorage.setItem("vendorAuth", JSON.stringify(vendorData));
-          localStorage.setItem("isVendorLoggedIn", "true");
-
-          if (vendorData.token) {
-            localStorage.setItem("vendorToken", vendorData.token);
-          }
+        // Try HTTPS first, fallback to HTTP
+        let response;
+        try {
+          response = await fetch(
+            "https://server.bizengo.com/api/auth/signup/vendor",
+            {
+              method: "POST",
+              headers: {
+                accept: "application/json",
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(requestBody),
+            }
+          );
+        } catch (httpsError) {
+          console.log(
+            "HTTPS failed due to SSL issue, trying HTTP...",
+            httpsError
+          );
+          response = await fetch(
+            "http://server.bizengo.com/api/auth/signup/vendor",
+            {
+              method: "POST",
+              headers: {
+                accept: "application/json",
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(requestBody),
+            }
+          );
         }
 
-        // Close info modal first
-        closeNotification();
+        console.log("Response status:", response.status);
+        const data = await response.json();
+        console.log("Response data:", data);
 
-        setTimeout(() => {
-          showNotification(
-            "success",
-            "Account created successfully! Welcome to the platform. You're being redirected to your dashboard."
-          );
+        if (
+          response.ok ||
+          (data && data.message === "Account is pending verification")
+        ) {
+          closeNotification();
 
-          // Redirect after showing success message
           setTimeout(() => {
-            router.push("../dashboard");
-          }, 2000);
-        }, 500);
+            // Store email for OTP verification
+            sessionStorage.setItem("VendorEmail", formData.email);
+
+            showNotification(
+              "success",
+              data.message ||
+                "Please check your email for the OTP verification code."
+            );
+
+            // Clear form
+            setFormData({
+              businessName: "",
+              businessType: "",
+              firstName: "",
+              lastName: "",
+              email: "",
+              password: "",
+              confirmPassword: "",
+              phone: "",
+              country: "",
+              state: "",
+              referralCode: "",
+            });
+
+            // Redirect to OTP verification
+            setTimeout(() => {
+              router.push(
+                `/vendor/verify-otp?email=${encodeURIComponent(formData.email)}`
+              );
+            }, 2000);
+          }, 500);
+        } else {
+          // Handle API errors
+          let errorMessage = "Failed to create account. Please try again.";
+
+          if (data && data.message) {
+            errorMessage = data.message;
+          } else if (data && data.error) {
+            errorMessage = data.error;
+          } else if (data && data.errors && Array.isArray(data.errors)) {
+            errorMessage = data.errors.join(", ");
+          }
+
+          if (response.status === 400) {
+            if (errorMessage.toLowerCase().includes("email")) {
+              errorMessage =
+                "This email address is already registered or invalid.";
+            } else if (errorMessage.toLowerCase().includes("phone")) {
+              errorMessage =
+                "This phone number is already registered or invalid.";
+            }
+          } else if (response.status === 409) {
+            errorMessage =
+              "An account with this email or phone number already exists. Please try logging in instead.";
+          } else if (response.status === 422) {
+            errorMessage =
+              errorMessage || "Please check your information and try again.";
+          } else if (response.status === 500) {
+            errorMessage =
+              "Our servers are experiencing issues. Please try again later.";
+          }
+
+          closeNotification();
+          setTimeout(() => {
+            showNotification("error", errorMessage);
+          }, 500);
+        }
       }
     } catch (error: any) {
       console.error("Authentication error:", error);
 
       let errorMessage =
         error.message || "Authentication failed. Please try again.";
-      let errorTitle = isLogin ? "Login Failed" : "Signup Failed";
 
-      // Handle specific error cases
       if (
         errorMessage.includes("Invalid credentials") ||
         errorMessage.includes("Unauthorized")
       ) {
-        errorTitle = "Invalid Credentials";
         errorMessage = "Please check your email and password and try again.";
       } else if (errorMessage.includes("User not found")) {
-        errorTitle = "Account Not Found";
         errorMessage =
           "No account found with this email. Please sign up first.";
       } else if (errorMessage.includes("already exists")) {
-        errorTitle = "Account Already Exists";
         errorMessage =
           "An account with this email already exists. Please try logging in.";
       }
 
-      // Close info modal first
       closeNotification();
-
       setTimeout(() => {
-        showNotification("error", `${errorTitle}: ${errorMessage}`);
+        showNotification("error", errorMessage);
       }, 500);
 
       setErrors({
@@ -600,6 +998,11 @@ const VendorAuth: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Get available states for selected country
+  const getAvailableStates = () => {
+    return statesByCountry[formData.country] || [];
   };
 
   return (
@@ -716,57 +1119,100 @@ const VendorAuth: React.FC = () => {
                       )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="country">Country *</Label>
-                        <select
-                          name="country"
-                          value={formData.country}
-                          onChange={handleInputChange}
-                          className={`w-full h-11 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                            errors.country
-                              ? "border-red-500"
-                              : "border-gray-300"
-                          }`}
-                          required
+                    {/* Location Section with Auto-Detection */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-base font-medium">
+                          Location *
+                        </Label>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={manualDetectLocation}
+                          disabled={isDetectingLocation}
+                          className="text-xs h-8 px-3"
                         >
-                          <option value="">Select country</option>
-                          {countries.map((country) => (
-                            <option key={country.value} value={country.value}>
-                              {country.label}
-                            </option>
-                          ))}
-                        </select>
-                        {errors.country && (
-                          <p className="text-red-500 text-sm">
-                            {errors.country}
-                          </p>
-                        )}
+                          {isDetectingLocation ? (
+                            <>
+                              <Loader2 className="animate-spin h-3 w-3 mr-1" />
+                              Detecting...
+                            </>
+                          ) : (
+                            <>
+                              <Locate className="h-3 w-3 mr-1" />
+                              Auto-detect
+                            </>
+                          )}
+                        </Button>
                       </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="state">State *</Label>
-                        <select
-                          name="state"
-                          value={formData.state}
-                          onChange={handleInputChange}
-                          className={`w-full h-11 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                            errors.state ? "border-red-500" : "border-gray-300"
-                          }`}
-                          required
-                          disabled={!formData.country}
-                        >
-                          <option value="">Select state</option>
-                          {formData.country === "Nigeria" &&
-                            nigerianStates.map((state) => (
+                      {isDetectingLocation && (
+                        <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 p-3 rounded-lg">
+                          <MapPin className="h-4 w-4" />
+                          <span>Detecting your location...</span>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="country">Country *</Label>
+                          <select
+                            name="country"
+                            value={formData.country}
+                            onChange={handleInputChange}
+                            className={`w-full h-11 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                              errors.country
+                                ? "border-red-500"
+                                : "border-gray-300"
+                            }`}
+                            required
+                          >
+                            <option value="">Select country</option>
+                            {countries.map((country) => (
+                              <option key={country.value} value={country.value}>
+                                {country.label}
+                              </option>
+                            ))}
+                          </select>
+                          {errors.country && (
+                            <p className="text-red-500 text-sm">
+                              {errors.country}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="state">State/Region *</Label>
+                          <select
+                            name="state"
+                            value={formData.state}
+                            onChange={handleInputChange}
+                            className={`w-full h-11 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                              errors.state
+                                ? "border-red-500"
+                                : "border-gray-300"
+                            }`}
+                            required
+                            disabled={!formData.country}
+                          >
+                            <option value="">
+                              {formData.country
+                                ? "Select state"
+                                : "Select country first"}
+                            </option>
+                            {getAvailableStates().map((state) => (
                               <option key={state.value} value={state.value}>
                                 {state.label}
                               </option>
                             ))}
-                        </select>
-                        {errors.state && (
-                          <p className="text-red-500 text-sm">{errors.state}</p>
-                        )}
+                          </select>
+                          {errors.state && (
+                            <p className="text-red-500 text-sm">
+                              {errors.state}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -937,13 +1383,30 @@ const VendorAuth: React.FC = () => {
               {isLogin ? "Don't have an account?" : "Already have an account?"}
               <button
                 type="button"
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={toggleAuthMode}
                 className="text-blue-600 font-medium ml-1 hover:underline"
               >
                 {isLogin ? "Sign Up" : "Sign In"}
               </button>
             </p>
           </div>
+
+          {/* Location Detection Info */}
+          {!isLogin && (
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start gap-3">
+                <MapPin className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-blue-700">
+                  <p className="font-medium mb-1">Auto-Location Detection</p>
+                  <p>
+                    We automatically detect your location to help you set up
+                    your business profile faster. You can always change this
+                    information later or click "Auto-detect" to try again.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>

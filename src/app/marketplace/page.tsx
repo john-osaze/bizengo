@@ -128,8 +128,7 @@ const MarketplaceBrowse: React.FC = () => {
   const router = useRouter();
 
   // API URL
-  const API_URL =
-    "https://rsc-kl61.onrender.com/api/marketplace/popular-products";
+  const API_URL = "https://server.bizengo.com/api/marketplace/popular-products";
 
   // Function to transform API response to our Product interface
   const transformApiProduct = (apiProduct: ApiProduct): Product => {

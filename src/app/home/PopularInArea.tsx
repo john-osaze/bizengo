@@ -49,8 +49,7 @@ const PopularInArea: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // API URL
-  const API_URL =
-    "https://rsc-kl61.onrender.com/api/marketplace/popular-products";
+  const API_URL = "https://server.bizengo.com/api/marketplace/popular-products";
 
   // Function to generate random distance for demo purposes
   const generateRandomDistance = (): string => {

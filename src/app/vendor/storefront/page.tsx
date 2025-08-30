@@ -196,7 +196,7 @@ const VendorStorefront: React.FC = () => {
       }
 
       const res = await fetch(
-        "https://rsc-kl61.onrender.com/api/vendor/storefront",
+        "https://server.bizengo.com/api/vendor/storefront",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -291,7 +291,7 @@ const VendorStorefront: React.FC = () => {
       };
 
       const res = await fetch(
-        "https://rsc-kl61.onrender.com/api/vendor/storefront",
+        "https://server.bizengo.com/api/vendor/storefront",
         {
           method: "PUT",
           headers: {

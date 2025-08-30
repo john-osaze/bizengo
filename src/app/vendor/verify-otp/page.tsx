@@ -111,7 +111,7 @@ const VerifyOtpPage = () => {
         description: "Email is missing. Please signup or login.",
         variant: "destructive",
       });
-      router.push("/auth/signup");
+      router.push("/vendor/auth");
       return;
     }
 
@@ -174,7 +174,7 @@ const VerifyOtpPage = () => {
         sessionStorage.removeItem("RSEmail");
 
         // Redirect to login or dashboard
-        router.push("/auth/login");
+        router.push("/vendor/auth");
       } else {
         toast({
           title: "Error",

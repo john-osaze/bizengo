@@ -145,7 +145,7 @@ export default function CartSystem({ isOpen, onClose }: CartSystemProps) {
   const fetchCart = async () => {
     try {
       setIsLoading(true);
-      const data = await apiCall("https://rsc-kl61.onrender.com/api/cart");
+      const data = await apiCall("https://server.bizengo.com/api/cart");
 
       const mappedItems: CartItem[] = (data.cart_items || []).map(
         (item: any) => ({
@@ -190,7 +190,7 @@ export default function CartSystem({ isOpen, onClose }: CartSystemProps) {
 
     try {
       setIsLoading(true);
-      await apiCall(`https://rsc-kl61.onrender.com/api/cart/update/${itemId}`, {
+      await apiCall(`https://server.bizengo.com/api/cart/update/${itemId}`, {
         method: "PUT",
         body: JSON.stringify({ quantity }),
       });
@@ -209,7 +209,7 @@ export default function CartSystem({ isOpen, onClose }: CartSystemProps) {
   const deleteCartItem = async (itemId: number) => {
     try {
       setIsLoading(true);
-      await apiCall(`https://rsc-kl61.onrender.com/api/cart/delete/${itemId}`, {
+      await apiCall(`https://server.bizengo.com/api/cart/delete/${itemId}`, {
         method: "DELETE",
       });
 
@@ -231,7 +231,7 @@ export default function CartSystem({ isOpen, onClose }: CartSystemProps) {
 
     try {
       setIsLoading(true);
-      await apiCall("https://rsc-kl61.onrender.com/api/cart/clear", {
+      await apiCall("https://server.bizengo.com/api/cart/clear", {
         method: "DELETE",
       });
 

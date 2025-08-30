@@ -297,7 +297,7 @@ Battery health is at 95% and the device has never been dropped or damaged. All f
 
     try {
       setIsAddingToCart(true);
-      await apiCall("https://rsc-kl61.onrender.com/api/cart/add", {
+      await apiCall("https://server.bizengo.com/api/cart/add", {
         method: "POST",
         body: JSON.stringify({
           product_id: productId,

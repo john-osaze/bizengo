@@ -53,7 +53,7 @@ const Header: React.FC = () => {
           setIsAuthenticated(true);
 
           const response = await fetch(
-            "https://rsc-kl61.onrender.com/api/user/profile",
+            "https://server.bizengo.com/api/user/profile",
             {
               headers: {
                 Accept: "application/json",

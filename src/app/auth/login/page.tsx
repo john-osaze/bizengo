@@ -201,7 +201,7 @@ const Login = () => {
 
     try {
       const response = await fetch(
-        "https://rsc-kl61.onrender.com/api/auth/login",
+        "https://server.bizengo.com/api/auth/login",
         {
           method: "POST",
           headers: {
@@ -233,7 +233,7 @@ const Login = () => {
         // Fetch user profile
         try {
           const profileResponse = await fetch(
-            "https://rsc-kl61.onrender.com/api/user/profile",
+            "https://server.bizengo.com/api/user/profile",
             {
               headers: {
                 Authorization: `Bearer ${data.access_token}`,

@@ -253,7 +253,7 @@ const OrderManagement: React.FC = () => {
       }
 
       const response = await fetch(
-        "https://rsc-kl61.onrender.com/api/vendor/orders",
+        "https://server.bizengo.com/api/vendor/orders",
         {
           method: "GET",
           headers: {
@@ -463,7 +463,7 @@ const OrderManagement: React.FC = () => {
       const token = getVendorToken();
       if (token) {
         // Example API call (adjust endpoint as needed):
-        // await fetch(`https://rsc-kl61.onrender.com/api/vendor/orders/${orderId}/status`, {
+        // await fetch(`https://server.bizengo.com/api/vendor/orders/${orderId}/status`, {
         //   method: 'PUT',
         //   headers: {
         //     'Content-Type': 'application/json',

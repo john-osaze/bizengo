@@ -117,15 +117,12 @@ const Settings = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await fetch(
-          "https://rsc-kl61.onrender.com/api/user/profile",
-          {
-            headers: {
-              accept: "application/json",
-              Authorization: `Bearer ${localStorage.getItem("vendorToken")}`,
-            },
-          }
-        );
+        const res = await fetch("https://server.bizengo.com/api/user/profile", {
+          headers: {
+            accept: "application/json",
+            Authorization: `Bearer ${localStorage.getItem("vendorToken")}`,
+          },
+        });
 
         if (!res.ok) throw new Error("Failed to fetch profile");
 
