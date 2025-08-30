@@ -1,7 +1,7 @@
 "use client";
 import { ArrowLeft, Lock, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Card,
@@ -16,6 +16,20 @@ import { toast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 
 export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center">
+          <div>Loading...</div>
+        </div>
+      }
+    >
+      <ResetPasswordContent />
+    </Suspense>
+  );
+}
+
+function ResetPasswordContent() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -35,7 +49,7 @@ export default function ResetPasswordPage() {
       setCode(codeParam);
     } else {
       // Redirect back to forgot password if missing params
-      router.push("/auth/forgot-password");
+      router.push("/tools/auth/forgot-password");
     }
   }, [searchParams, router]);
 
@@ -116,7 +130,7 @@ export default function ResetPasswordPage() {
         });
         // Redirect to login after success
         setTimeout(() => {
-          router.push("/auth/login");
+          router.push("/tools/auth/login");
         }, 2000);
       } else {
         toast({
@@ -142,7 +156,7 @@ export default function ResetPasswordPage() {
       <div className="w-full max-w-md">
         <div className="mb-8">
           <Link
-            href="auth/verify-reset-code"
+            href="/tools/auth/verify-reset-code"
             className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />

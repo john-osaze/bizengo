@@ -1,7 +1,7 @@
 "use client";
 import { ArrowLeft, Shield, RotateCcw } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Card,
@@ -16,6 +16,20 @@ import { toast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 
 export default function VerifyResetCodePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center">
+          <div>Loading...</div>
+        </div>
+      }
+    >
+      <VerifyResetCodeContent />
+    </Suspense>
+  );
+}
+
+function VerifyResetCodeContent() {
   const [code, setCode] = useState("");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -29,7 +43,7 @@ export default function VerifyResetCodePage() {
       setEmail(emailParam);
     } else {
       // Redirect back to forgot password if no email
-      router.push("/auth/forgot-password");
+      router.push("/tools/auth/forgot-password");
     }
   }, [searchParams, router]);
 
@@ -72,7 +86,7 @@ export default function VerifyResetCodePage() {
         });
         // Navigate to reset password page with email and code
         router.push(
-          `/auth/reset-password?email=${encodeURIComponent(
+          `/tools/auth/reset-password?email=${encodeURIComponent(
             email
           )}&code=${encodeURIComponent(code)}`
         );
@@ -137,7 +151,7 @@ export default function VerifyResetCodePage() {
       <div className="w-full max-w-md">
         <div className="mb-8">
           <Link
-            href="/auth/forgot-password"
+            href="/tools/auth/forgot-password"
             className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
