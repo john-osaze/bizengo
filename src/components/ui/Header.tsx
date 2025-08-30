@@ -7,7 +7,7 @@ import Icon from "./AppIcon"; // Adjust path as needed
 import Link from "next/link";
 import { ShoppingCart, Store, X } from "lucide-react";
 import "./custom.css";
-
+import CartSystem from "../../app/CartSystem/page";
 type OptionType = "shopping" | "vendor" | null;
 
 interface ModalOption {
@@ -34,6 +34,7 @@ interface UserProfile {
 }
 
 const Header: React.FC = () => {
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
   const router = useRouter();
@@ -52,7 +53,7 @@ const Header: React.FC = () => {
           setIsAuthenticated(true);
 
           const response = await fetch(
-            "https://rsc-kl61.onrender.com/api/user/profile",
+            "https://server.bizengo.com/api/user/profile",
             {
               headers: {
                 Accept: "application/json",
@@ -297,7 +298,7 @@ const Header: React.FC = () => {
                 <>
                   {/* Shopping Cart - Always show when authenticated */}
                   <button
-                    onClick={() => router.push("/")}
+                    onClick={() => setIsCartOpen(true)} // 👈 open cart sidebar
                     className="p-2 rounded-lg hover:bg-surface-secondary transition-colors duration-200 relative"
                     aria-label="User Shopping Cart"
                   >
@@ -474,10 +475,7 @@ const Header: React.FC = () => {
                     <>
                       {/* Cart option in mobile menu */}
                       <button
-                        onClick={() => {
-                          router.push("/");
-                          setIsOpen(false);
-                        }}
+                        onClick={() => setIsCartOpen(true)}
                         className="flex items-center w-full text-left p-3 text-sm font-medium text-text-primary hover:bg-surface-secondary transition-colors duration-200"
                       >
                         <Icon name="ShoppingCart" size={16} className="mr-3" />
@@ -633,6 +631,26 @@ const Header: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {isCartOpen && (
+        <div className="fixed inset-0 z-50">
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50"
+            onClick={() => setIsCartOpen(false)}
+          />
+          <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-lg">
+            <div className="p-4">
+              <button
+                onClick={() => setIsCartOpen(false)}
+                className="float-right p-2 hover:bg-gray-100 rounded"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <CartSystem />
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

@@ -63,7 +63,9 @@ const useAutoLocation = () => {
       const city = address.city || address.town || address.village || "";
       const state = address.state || address.region || "";
       const country = address.country || "";
-      return `${city}${state ? ", " + state : ""}${country ? ", " + country : ""}`;
+      return `${city}${state ? ", " + state : ""}${
+        country ? ", " + country : ""
+      }`;
     } catch {
       return `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
     }
@@ -81,7 +83,10 @@ const useAutoLocation = () => {
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
-        const fullAddress = await getAddressFromCoordinates(latitude, longitude);
+        const fullAddress = await getAddressFromCoordinates(
+          latitude,
+          longitude
+        );
         const addressParts = fullAddress.split(", ");
         const locationData: LocationData = {
           latitude,
@@ -105,10 +110,14 @@ const useAutoLocation = () => {
 
   const getErrorMessage = (code: number) => {
     switch (code) {
-      case 1: return "Location access denied";
-      case 2: return "Location unavailable";
-      case 3: return "Request timed out";
-      default: return "Unknown error";
+      case 1:
+        return "Location access denied";
+      case 2:
+        return "Location unavailable";
+      case 3:
+        return "Request timed out";
+      default:
+        return "Unknown error";
     }
   };
 
@@ -138,12 +147,18 @@ const UserProfile: React.FC = () => {
   const [vendorData, setVendorData] = useState<VendorData | null>(null);
   const router = useRouter();
 
-  const { location, loading: locationLoading, error: locationError, getCurrentLocation, clearLocation } = useAutoLocation();
+  const {
+    location,
+    loading: locationLoading,
+    error: locationError,
+    getCurrentLocation,
+    clearLocation,
+  } = useAutoLocation();
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await fetch("https://rsc-kl61.onrender.com/api/user/profile", {
+        const res = await fetch("https://server.bizengo.com/api/user/profile", {
           headers: {
             accept: "application/json",
             Authorization: `Bearer ${localStorage.getItem("vendorToken")}`,
@@ -162,10 +177,15 @@ const UserProfile: React.FC = () => {
   // --- Profile Fallback ---
   const userProfile = {
     id: 1,
-    name: vendorData?.business_name || `${vendorData?.first_name || "Sarah"} ${vendorData?.last_name || "Johnson"}`,
+    name:
+      vendorData?.business_name ||
+      `${vendorData?.first_name || "Sarah"} ${
+        vendorData?.last_name || "Johnson"
+      }`,
     email: vendorData?.email || "sarah.johnson@email.com",
     phone: vendorData?.phone || "+1 (555) 123-4567",
-    avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
+    avatar:
+      "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
     location: location?.fullAddress || "San Francisco, CA",
     joinDate: "March 2023",
     isVerified: {
@@ -183,14 +203,36 @@ const UserProfile: React.FC = () => {
   };
 
   const tabs: Tab[] = [
-    { id: "listings", label: "My Listings", icon: "Package", count: userProfile.stats.itemsListed },
+    {
+      id: "listings",
+      label: "My Listings",
+      icon: "Package",
+      count: userProfile.stats.itemsListed,
+    },
     { id: "settings", label: "Settings", icon: "Settings" },
   ];
 
   const quickActions: QuickAction[] = [
-    { id: "list-item", label: "List New Item", icon: "Plus", color: "bg-primary text-white", action: () => router.push("/create-listing") },
-    { id: "messages", label: "Messages", icon: "MessageCircle", color: "bg-secondary text-white", badge: 3 },
-    { id: "account-settings", label: "Account Settings", icon: "User", color: "bg-surface border border-border text-text-primary" },
+    {
+      id: "list-item",
+      label: "List New Item",
+      icon: "Plus",
+      color: "bg-primary text-white",
+      action: () => router.push("/create-listing"),
+    },
+    {
+      id: "messages",
+      label: "Messages",
+      icon: "MessageCircle",
+      color: "bg-secondary text-white",
+      badge: 3,
+    },
+    {
+      id: "account-settings",
+      label: "Account Settings",
+      icon: "User",
+      color: "bg-surface border border-border text-text-primary",
+    },
   ];
 
   const renderTabContent = () => {

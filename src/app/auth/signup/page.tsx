@@ -20,6 +20,8 @@ import {
   AlertTriangle,
   Loader2,
   X,
+  MapPin,
+  RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -211,6 +213,8 @@ const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [passwordStrengthScore, setPasswordStrengthScore] = useState(0);
   const [passwordsMatch, setPasswordsMatch] = useState(true);
+  const [locationDetecting, setLocationDetecting] = useState(false);
+  const [locationDetected, setLocationDetected] = useState(false);
   const [notification, setNotification] = useState<{
     type: "success" | "error" | "info";
     title: string;
@@ -224,6 +228,11 @@ const Signup = () => {
   });
   const router = useRouter();
 
+  // Auto-detect location on component mount
+  useEffect(() => {
+    detectLocation();
+  }, []);
+
   useEffect(() => {
     setPasswordStrengthScore(passwordStrength(formData.password));
   }, [formData.password]);
@@ -235,6 +244,96 @@ const Signup = () => {
       setPasswordsMatch(true);
     }
   }, [formData.password, formData.confirmPassword]);
+
+  // Location detection function
+  const detectLocation = async () => {
+    if (formData.country && formData.state && locationDetected) {
+      return; // Don't re-detect if already filled and detected
+    }
+
+    setLocationDetecting(true);
+    try {
+      // Use multiple fallback services for better reliability
+      const response = await fetch("https://ipapi.co/json/");
+
+      if (response.ok) {
+        const data = await response.json();
+
+        if (data.country_name && data.region) {
+          setFormData((prev) => ({
+            ...prev,
+            country: data.country_name,
+            state: data.region,
+          }));
+          setLocationDetected(true);
+        } else {
+          throw new Error("Incomplete location data");
+        }
+      } else {
+        throw new Error("Primary location service failed");
+      }
+    } catch (error) {
+      // Fallback to alternative service
+      try {
+        const fallbackResponse = await fetch("https://ip-api.com/json/");
+
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+
+          if (
+            fallbackData.status === "success" &&
+            fallbackData.country &&
+            fallbackData.regionName
+          ) {
+            setFormData((prev) => ({
+              ...prev,
+              country: fallbackData.country,
+              state: fallbackData.regionName,
+            }));
+            setLocationDetected(true);
+          } else {
+            throw new Error("Fallback location service failed");
+          }
+        } else {
+          throw new Error("Fallback location service failed");
+        }
+      } catch (fallbackError) {
+        // Second fallback
+        try {
+          const secondFallbackResponse = await fetch("https://ipinfo.io/json");
+
+          if (secondFallbackResponse.ok) {
+            const secondFallbackData = await secondFallbackResponse.json();
+
+            if (secondFallbackData.country && secondFallbackData.region) {
+              // Convert country code to country name if needed
+              const countryName =
+                secondFallbackData.country === "NG"
+                  ? "Nigeria"
+                  : secondFallbackData.country === "US"
+                  ? "United States"
+                  : secondFallbackData.country === "GB"
+                  ? "United Kingdom"
+                  : secondFallbackData.country === "CA"
+                  ? "Canada"
+                  : secondFallbackData.country;
+
+              setFormData((prev) => ({
+                ...prev,
+                country: countryName,
+                state: secondFallbackData.region,
+              }));
+              setLocationDetected(true);
+            }
+          }
+        } catch (secondFallbackError) {
+          console.log("Location detection failed, user can enter manually");
+        }
+      }
+    } finally {
+      setLocationDetecting(false);
+    }
+  };
 
   // Show notification function
   const showNotification = (
@@ -262,6 +361,12 @@ const Signup = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  // Manual location refresh
+  const handleLocationRefresh = () => {
+    setLocationDetected(false);
+    detectLocation();
   };
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -321,39 +426,63 @@ const Signup = () => {
         state: formData.state,
       };
 
-      console.log(
-        "Sending request to:",
-        "https://rsc-kl61.onrender.com/api/auth/signup/buyer"
-      );
-      console.log("Request body:", requestBody);
+      console.log("Sending signup request...", requestBody);
 
-      const response = await fetch(
-        "https://rsc-kl61.onrender.com/api/auth/signup/buyer",
-        {
-          method: "POST",
-          headers: {
-            accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestBody),
-        }
-      );
+      // Try HTTPS first, then fallback to HTTP for development
+      let response;
+      try {
+        response = await fetch(
+          "https://server.bizengo.com/api/auth/signup/buyer",
+          {
+            method: "POST",
+            headers: {
+              accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(requestBody),
+          }
+        );
+      } catch (httpsError) {
+        console.log(
+          "HTTPS failed due to SSL issue, trying HTTP...",
+          httpsError
+        );
+        // Fallback to HTTP for development
+        response = await fetch(
+          "http://server.bizengo.com/api/auth/signup/buyer",
+          {
+            method: "POST",
+            headers: {
+              accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(requestBody),
+          }
+        );
+      }
 
       console.log("Response status:", response.status);
       const data = await response.json();
       console.log("Response data:", data);
 
-      if (response.ok) {
+      // Check for success - handle both standard success and "pending verification" response
+      if (
+        response.ok ||
+        (data && data.message === "Account is pending verification")
+      ) {
         // Close loading modal first
         closeNotification();
 
         setTimeout(() => {
+          // Store email for OTP verification
+          sessionStorage.setItem("RSEmail", formData.email);
+
           // Success notification
           showNotification(
             "success",
             "Account Created Successfully!",
             data.message ||
-              "Your account has been created successfully. You will be redirected to the login page shortly."
+              "Please check your email for the OTP verification code."
           );
 
           // Clear form data
@@ -368,21 +497,23 @@ const Signup = () => {
             referral_code: "",
           });
 
-          // Redirect to login after a short delay
+          // Redirect to OTP verification
           setTimeout(() => {
-            router.push("/auth/login");
-          }, 3000);
+            router.push(
+              `/auth/verify-otp?email=${encodeURIComponent(formData.email)}`
+            );
+          }, 2000);
         }, 500);
       } else {
         // Handle API error responses
         let errorMessage = "Failed to create account. Please try again.";
         let errorTitle = "Signup Failed";
 
-        if (data.message) {
+        if (data && data.message) {
           errorMessage = data.message;
-        } else if (data.error) {
+        } else if (data && data.error) {
           errorMessage = data.error;
-        } else if (data.errors && Array.isArray(data.errors)) {
+        } else if (data && data.errors && Array.isArray(data.errors)) {
           errorMessage = data.errors.join(", ");
         }
 
@@ -421,13 +552,12 @@ const Signup = () => {
       console.error("Signup error:", error);
 
       let errorMessage = "Failed to create account. Please try again.";
-      let errorTitle = "Signup Failed";
+      let errorTitle = "Connection Error";
 
       if (error.name === "TypeError" && error.message.includes("fetch")) {
         // Network error
-        errorTitle = "Connection Error";
         errorMessage =
-          "Unable to connect to our servers. Please check your internet connection and try again.";
+          "Unable to connect to our servers. This appears to be an SSL certificate issue. Please contact support or try again later.";
       } else if (error.message.includes("timeout")) {
         errorTitle = "Request Timeout";
         errorMessage =
@@ -531,16 +661,41 @@ const Signup = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="country">Country *</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="country">Country *</Label>
+                      <div className="flex items-center gap-2">
+                        {locationDetected && (
+                          <div className="flex items-center gap-1 text-xs text-green-600">
+                            <MapPin className="h-3 w-3" />
+                            <span>Auto-detected</span>
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={handleLocationRefresh}
+                          disabled={locationDetecting || isLoading}
+                          className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50 transition-colors"
+                          title="Detect location"
+                        >
+                          <RefreshCw
+                            className={`h-3 w-3 ${
+                              locationDetecting ? "animate-spin" : ""
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </div>
                     <Input
                       id="country"
                       name="country"
                       type="text"
-                      placeholder="Nigeria"
+                      placeholder={
+                        locationDetecting ? "Detecting..." : "Nigeria"
+                      }
                       value={formData.country}
                       onChange={handleInputChange}
                       required
-                      disabled={isLoading}
+                      disabled={isLoading || locationDetecting}
                       className="h-11"
                     />
                   </div>
@@ -551,15 +706,22 @@ const Signup = () => {
                       id="state"
                       name="state"
                       type="text"
-                      placeholder="Lagos"
+                      placeholder={locationDetecting ? "Detecting..." : "Lagos"}
                       value={formData.state}
                       onChange={handleInputChange}
                       required
-                      disabled={isLoading}
+                      disabled={isLoading || locationDetecting}
                       className="h-11"
                     />
                   </div>
                 </div>
+
+                {locationDetecting && (
+                  <div className="text-xs text-blue-600 flex items-center gap-2">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <span>Detecting your location...</span>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label htmlFor="referral_code">
@@ -667,6 +829,11 @@ const Signup = () => {
                   <p>
                     Password must be strong (at least 8 characters with mixed
                     case, numbers, and symbols)
+                  </p>
+                  <p className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    Location is auto-detected for your convenience. You can edit
+                    if needed.
                   </p>
                 </div>
               </form>

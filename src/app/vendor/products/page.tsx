@@ -195,7 +195,7 @@ interface VendorData {
 // Updated ProductApiService class with the new token and proper error handling
 
 class ProductApiService {
-  private static baseUrl = "https://rsc-kl61.onrender.com/api/vendor";
+  private static baseUrl = "https://server.bizengo.com/api/vendor";
 
   // Your NEW token (but you'll need to get an even newer one since this expires Jan 23, 2025)
   private static async getAuthToken(): Promise<string> {
@@ -343,7 +343,7 @@ class ProductApiService {
   static async login(email: string, password: string): Promise<string> {
     try {
       const response = await fetch(
-        "https://rsc-kl61.onrender.com/api/vendor/login",
+        "https://server.bizengo.com/api/vendor/login",
         {
           method: "POST",
           headers: {

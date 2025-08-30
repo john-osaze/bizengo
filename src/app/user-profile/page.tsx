@@ -63,7 +63,7 @@ const UserProfile: React.FC = () => {
     }
 
     // Then fetch fresh data
-    fetch("https://rsc-kl61.onrender.com/api/user/profile", {
+    fetch("https://server.bizengo.com/api/user/profile", {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
