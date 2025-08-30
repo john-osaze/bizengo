@@ -632,7 +632,25 @@ const Header: React.FC = () => {
         </div>
       </div>
 
-      <CartSystem isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      {isCartOpen && (
+        <div className="fixed inset-0 z-50">
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50"
+            onClick={() => setIsCartOpen(false)}
+          />
+          <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-lg">
+            <div className="p-4">
+              <button
+                onClick={() => setIsCartOpen(false)}
+                className="float-right p-2 hover:bg-gray-100 rounded"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <CartSystem />
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 };
