@@ -31,12 +31,7 @@ interface Notification {
   message: string;
 }
 
-interface CartSystemProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-// ✅ Notification Component
+// Notification Component
 const NotificationToast: React.FC<{
   notification: Notification;
   onClose: (id: string) => void;
@@ -84,9 +79,8 @@ const NotificationToast: React.FC<{
   );
 };
 
-// ✅ Cart Component
-
-export default function CartSystem({ isOpen, onClose }: CartSystemProps) {
+// Main Cart Page Component (no props required)
+export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
@@ -253,7 +247,7 @@ export default function CartSystem({ isOpen, onClose }: CartSystemProps) {
   }, []);
 
   return (
-    <>
+    <div className="min-h-screen bg-gray-50">
       {/* Notifications */}
       {notifications.map((notification) => (
         <NotificationToast
@@ -263,142 +257,133 @@ export default function CartSystem({ isOpen, onClose }: CartSystemProps) {
         />
       ))}
 
-      {/* Demo Add to Cart Buttons */}
+      {/* Main Cart Content */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 flex items-center space-x-3">
+              <ShoppingBag className="w-8 h-8" />
+              <span>Shopping Cart ({totalItems} items)</span>
+            </h1>
+          </div>
 
-      {/* Cart Sidebar */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex">
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50"
-            onClick={onClose}
-          />
-
-          {/* Cart Panel */}
-          <div className="relative ml-auto w-full max-w-md bg-white shadow-xl">
-            <div className="flex flex-col h-full">
-              {/* Header */}
-              <div className="flex items-center justify-between p-4 border-b">
-                <h2 className="text-lg font-semibold flex items-center space-x-2">
-                  <ShoppingBag className="w-5 h-5" />
-                  <span>Shopping Cart ({totalItems})</span>
-                </h2>
-                <button
-                  onClick={onClose}
-                  className="p-1 hover:bg-gray-100 rounded-full"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+          {/* Cart Content */}
+          <div className="bg-white rounded-lg shadow-sm">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
               </div>
+            ) : cartItems.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <ShoppingCart className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                <p className="text-lg">Your cart is empty</p>
+                <p className="text-sm">Add some items to get started!</p>
+              </div>
+            ) : (
+              <div className="p-6">
+                {/* Cart Items */}
+                <div className="space-y-4 mb-6">
+                  {cartItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg"
+                    >
+                      <img
+                        src={
+                          item.product.images[0] ||
+                          "https://via.placeholder.com/80"
+                        }
+                        alt={item.product.product_name}
+                        className="w-20 h-20 object-cover rounded"
+                      />
 
-              {/* Cart Items */}
-              <div className="flex-1 overflow-y-auto p-4">
-                {isLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                  </div>
-                ) : cartItems.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <ShoppingCart className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>Your cart is empty</p>
-                    <p className="text-sm">Add some items to get started!</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {cartItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg"
-                      >
-                        <img
-                          src={
-                            item.product.images[0] ||
-                            "https://via.placeholder.com/60"
-                          }
-                          alt={item.product.product_name}
-                          className="w-15 h-15 object-cover rounded"
-                        />
-
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-sm truncate">
-                            {item.product.product_name}
-                          </h3>
-                          <p className="text-blue-600 font-semibold">
-                            ₦{item.product.product_price.toLocaleString()}
-                          </p>
-
-                          <div className="flex items-center space-x-2 mt-2">
-                            <button
-                              onClick={() =>
-                                updateCartItem(item.id, item.quantity - 1)
-                              }
-                              disabled={isLoading}
-                              className="p-1 hover:bg-gray-200 rounded disabled:opacity-50"
-                            >
-                              <Minus className="w-4 h-4" />
-                            </button>
-
-                            <span className="w-8 text-center font-medium">
-                              {item.quantity}
-                            </span>
-
-                            <button
-                              onClick={() =>
-                                updateCartItem(item.id, item.quantity + 1)
-                              }
-                              disabled={isLoading}
-                              className="p-1 hover:bg-gray-200 rounded disabled:opacity-50"
-                            >
-                              <Plus className="w-4 h-4" />
-                            </button>
-
-                            <button
-                              onClick={() => deleteCartItem(item.id)}
-                              disabled={isLoading}
-                              className="p-1 hover:bg-red-100 text-red-500 rounded ml-auto disabled:opacity-50"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg">
+                          {item.product.product_name}
+                        </h3>
+                        <p className="text-gray-600 text-sm">
+                          Category: {item.product.category}
+                        </p>
+                        <p className="text-blue-600 font-bold text-lg">
+                          ₦{item.product.product_price.toLocaleString()}
+                        </p>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
 
-              {/* Footer */}
-              {cartItems.length > 0 && (
-                <div className="border-t p-4 space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-semibold">Total:</span>
-                    <span className="text-lg font-bold text-blue-600">
+                      <div className="flex items-center space-x-3">
+                        <button
+                          onClick={() =>
+                            updateCartItem(item.id, item.quantity - 1)
+                          }
+                          disabled={isLoading}
+                          className="p-2 hover:bg-gray-100 rounded-full disabled:opacity-50"
+                        >
+                          <Minus className="w-4 h-4" />
+                        </button>
+
+                        <span className="w-12 text-center font-semibold text-lg">
+                          {item.quantity}
+                        </span>
+
+                        <button
+                          onClick={() =>
+                            updateCartItem(item.id, item.quantity + 1)
+                          }
+                          disabled={isLoading}
+                          className="p-2 hover:bg-gray-100 rounded-full disabled:opacity-50"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+
+                        <button
+                          onClick={() => deleteCartItem(item.id)}
+                          disabled={isLoading}
+                          className="p-2 hover:bg-red-100 text-red-500 rounded-full ml-4 disabled:opacity-50"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      <div className="text-right">
+                        <p className="font-bold text-lg">
+                          ₦{(item.quantity * item.product.product_price).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Cart Summary */}
+                <div className="border-t pt-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <span className="text-2xl font-bold">Total:</span>
+                    <span className="text-2xl font-bold text-blue-600">
                       ₦{totalPrice.toLocaleString()}
                     </span>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="flex space-x-4">
                     <button
                       onClick={clearCart}
                       disabled={isLoading}
-                      className="w-full py-2 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
+                      className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
                     >
                       Clear Cart
                     </button>
 
                     <button
                       disabled={isLoading}
-                      className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50"
+                      className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50"
                     >
                       Proceed to Checkout
                     </button>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
-      )}
-    </>
+      </div>
+    </div>
   );
 }
