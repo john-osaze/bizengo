@@ -146,7 +146,69 @@ const UserProfile: React.FC = () => {
   const [activeTab, setActiveTab] = useState("listings");
   const [vendorData, setVendorData] = useState<VendorData | null>(null);
   const router = useRouter();
+  const [uploading, setUploading] = useState(false);
 
+  const handleProfilePictureUpload = async (file: File) => {
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("profile_pic", file);
+
+      const token = localStorage.getItem("vendorToken");
+
+      const response = await fetch(
+        "https://server.bizengo.com/api/upload-profile-pic",
+        {
+          method: "POST",
+          headers: {
+            accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      // Update the user profile with new avatar URL if returned
+      if (result.profile_pic_url) {
+        // Update your userProfile state or refetch profile data
+        // You might want to update vendorData state here
+        alert("Profile picture updated successfully!");
+        // Optionally refresh the profile data
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      alert("Failed to upload profile picture. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  };
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        alert("Please select an image file");
+        return;
+      }
+
+      // Validate file size (e.g., max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert("File size must be less than 5MB");
+        return;
+      }
+
+      handleProfilePictureUpload(file);
+    }
+  };
   const {
     location,
     loading: locationLoading,
@@ -286,7 +348,13 @@ const UserProfile: React.FC = () => {
       <div className="md:hidden">
         <div className="bg-surface border-b border-border px-4 py-6">
           <div className="flex items-center space-x-4 mb-4">
-            <div className="relative w-16 h-16">
+            {/* For mobile layout - replace the existing avatar div */}
+            <div
+              className="relative w-16 h-16 cursor-pointer group"
+              onClick={() =>
+                document.getElementById("profile-pic-input")?.click()
+              }
+            >
               <Image
                 src={userProfile.avatar}
                 alt={userProfile.name}
@@ -299,7 +367,25 @@ const UserProfile: React.FC = () => {
                   <Icon name="Check" size={12} className="text-white" />
                 </div>
               )}
+              {/* Upload overlay */}
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 rounded-full flex items-center justify-center transition-all duration-200">
+                <Icon
+                  name="Camera"
+                  size={20}
+                  className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                />
+              </div>
+              {uploading && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                  <Icon
+                    name="Loader2"
+                    size={20}
+                    className="text-white animate-spin"
+                  />
+                </div>
+              )}
             </div>
+
             <div className="flex-1">
               <h1 className="text-xl font-heading font-semibold text-text-primary">
                 {userProfile.name}
@@ -655,6 +741,13 @@ const UserProfile: React.FC = () => {
           </div>
         </div>
       </div>
+      <input
+        id="profile-pic-input"
+        type="file"
+        accept="image/*"
+        onChange={handleFileSelect}
+        className="hidden"
+      />
     </div>
   );
 };
