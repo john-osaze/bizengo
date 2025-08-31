@@ -26,6 +26,7 @@ import {
   X,
   MapPin,
   Locate,
+  ShoppingCart,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Link from "next/link";
@@ -82,6 +83,24 @@ interface LocationData {
   state?: string;
   city?: string;
   countryCode?: string;
+}
+
+// Role checking interface
+interface UserRoleResponse {
+  user?: {
+    id: string;
+    email: string;
+    role: string;
+    [key: string]: any;
+  };
+  vendor?: {
+    id: string;
+    email: string;
+    role: string;
+    [key: string]: any;
+  };
+  role?: string;
+  message?: string;
 }
 
 // Constants
@@ -165,6 +184,29 @@ const statesByCountry: Record<
 const API_BASE_URL = "https://server.bizengo.com/api";
 
 const vendorAuthService = {
+  // Check user role before login attempt
+  checkUserRole: async (email: string): Promise<UserRoleResponse | null> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/check-role`, {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!response.ok) {
+        return null; // User might not exist, let normal login handle it
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Role check failed:", error);
+      return null;
+    }
+  },
+
   signup: async (data: VendorSignupRequest) => {
     const response = await fetch(`${API_BASE_URL}/auth/signup/vendor`, {
       method: "POST",
@@ -298,6 +340,69 @@ const locationService = {
   },
 };
 
+// Role Redirect Modal Component
+const RoleRedirectModal = ({
+  show,
+  onRedirect,
+  onClose,
+}: {
+  show: boolean;
+  onRedirect: () => void;
+  onClose: () => void;
+}) => {
+  if (!show) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="relative bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 border-2 border-orange-200">
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <X className="h-5 w-5" />
+        </button>
+
+        {/* Content */}
+        <div className="p-8 rounded-t-xl bg-orange-50">
+          <div className="text-center">
+            <div className="flex justify-center mb-4">
+              <ShoppingCart className="h-12 w-12 text-orange-500" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              You're a Buyer!
+            </h3>
+            <p className="text-gray-700 leading-relaxed">
+              We detected that you have a buyer account. This is the vendor
+              login page. Please use the buyer login to access your account.
+            </p>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="p-6 bg-white rounded-b-xl space-y-3">
+          <Button
+            onClick={onRedirect}
+            className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+          >
+            Go to Buyer Login
+          </Button>
+          <Button onClick={onClose} variant="outline" className="w-full">
+            Stay Here
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Modal Notification Component
 const NotificationModal = ({
   type,
@@ -403,6 +508,7 @@ const VendorAuth: React.FC = () => {
     useState<boolean>(false);
   const [locationDetected, setLocationDetected] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [showRoleRedirect, setShowRoleRedirect] = useState<boolean>(false);
   const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
@@ -541,6 +647,17 @@ const VendorAuth: React.FC = () => {
     setNotification((prev) => ({ ...prev, show: false }));
   };
 
+  // Handle role redirect
+  const handleRoleRedirect = () => {
+    setShowRoleRedirect(false);
+    router.push("/auth/login"); // Redirect to buyer login
+  };
+
+  // Close role redirect modal
+  const closeRoleRedirect = () => {
+    setShowRoleRedirect(false);
+  };
+
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -637,6 +754,7 @@ const VendorAuth: React.FC = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
   // Simple password strength function (0–4 score)
   const getPasswordStrengthScore = (password: string): number => {
     let score = 0;
@@ -670,7 +788,41 @@ const VendorAuth: React.FC = () => {
 
     try {
       if (isLogin) {
-        // ========== LOGIN ==========
+        // ========== ROLE CHECK BEFORE LOGIN ==========
+        console.log("Checking user role for email:", formData.email);
+
+        // Check if user exists and get their role
+        const roleCheckResponse = await vendorAuthService.checkUserRole(
+          formData.email
+        );
+
+        if (roleCheckResponse) {
+          const userRole =
+            roleCheckResponse.role ||
+            roleCheckResponse.user?.role ||
+            roleCheckResponse.vendor?.role;
+
+          console.log("User role detected:", userRole);
+
+          // If user is a buyer, show redirect modal
+          if (userRole === "buyer") {
+            setIsLoading(false);
+            setShowRoleRedirect(true);
+            return;
+          }
+
+          // If user is not a vendor, show error
+          if (userRole && userRole !== "vendor") {
+            setIsLoading(false);
+            showNotification(
+              "error",
+              `This account is registered as a ${userRole}. Please use the appropriate login page.`
+            );
+            return;
+          }
+        }
+
+        // ========== PROCEED WITH VENDOR LOGIN ==========
         showNotification("info", "Signing you in, please wait...");
 
         const loginData: LoginRequest = {
@@ -682,6 +834,17 @@ const VendorAuth: React.FC = () => {
 
         const response = await vendorAuthService.login(loginData);
         console.log("Login response:", response);
+
+        // Double-check role in login response
+        const loginUserRole =
+          response.role || response.user?.role || response.vendor?.role;
+
+        if (loginUserRole === "buyer") {
+          setIsLoading(false);
+          closeNotification();
+          setShowRoleRedirect(true);
+          return;
+        }
 
         const vendorData = {
           id:
@@ -716,6 +879,7 @@ const VendorAuth: React.FC = () => {
             new Date().toISOString(),
           profileComplete: 100,
           token: response.token || response.access_token,
+          role: loginUserRole || "vendor",
         };
 
         if (typeof window !== "undefined") {
@@ -811,25 +975,14 @@ const VendorAuth: React.FC = () => {
               body: JSON.stringify(requestBody),
             }
           );
-        } catch (httpsError) {
-          console.log(
-            "HTTPS failed due to SSL issue, trying HTTP...",
-            httpsError
-          );
-          response = await fetch(
-            "http://server.bizengo.com/api/auth/signup/vendor",
-            {
-              method: "POST",
-              headers: {
-                accept: "application/json",
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(requestBody),
-            }
+        } catch (fetchError) {
+          console.error("Network error during signup:", fetchError);
+          // Handle network errors
+          throw new Error(
+            "Network error. Please check your connection and try again."
           );
         }
 
-        console.log("Response status:", response.status);
         const data = await response.json();
         console.log("Response data:", data);
 
@@ -1012,6 +1165,12 @@ const VendorAuth: React.FC = () => {
         message={notification.message}
         show={notification.show}
         onClose={closeNotification}
+      />
+
+      <RoleRedirectModal
+        show={showRoleRedirect}
+        onRedirect={handleRoleRedirect}
+        onClose={closeRoleRedirect}
       />
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center p-4">
