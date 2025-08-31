@@ -509,6 +509,7 @@ const VendorAuth: React.FC = () => {
   const [locationDetected, setLocationDetected] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showRoleRedirect, setShowRoleRedirect] = useState<boolean>(false);
+  const [rememberMe, setRememberMe] = useState<boolean>(false); 
   const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
@@ -1465,6 +1466,30 @@ const VendorAuth: React.FC = () => {
                     <p className="text-red-500 text-sm">{errors.password}</p>
                   )}
                 </div>
+
+                {isLogin && (
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        id="remember"
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        disabled={isLoading}
+                        className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 disabled:opacity-50"
+                      />
+                      <Label htmlFor="remember" className="text-sm text-gray-600">
+                        Remember me
+                      </Label>
+                    </div>
+                    <Link
+                      href="/auth/forgot-password"
+                      className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
+                )}
 
                 {!isLogin && (
                   <div className="space-y-2">
