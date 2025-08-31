@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, Suspense } from "react";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, Sparkles, Clock } from "lucide-react";
 import Link from "next/link";
 import {
   Card,
@@ -26,6 +26,8 @@ const VerifyOtpPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [otpTimer, setOtpTimer] = useState(600); // 10 minutes = 600 seconds
+  const [isOtpExpired, setIsOtpExpired] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -42,6 +44,9 @@ const VerifyOtpPage = () => {
 
     if (foundEmail) {
       setEmail(foundEmail);
+      // Start the 10-minute timer when component mounts
+      setOtpTimer(600);
+      setIsOtpExpired(false);
     } else {
       toast({
         title: "Error",
@@ -56,7 +61,7 @@ const VerifyOtpPage = () => {
     };
   }, [router, searchParams]);
 
-  // Countdown timer for resend button
+  // Countdown timer for resend button (after manual resend)
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
@@ -64,17 +69,41 @@ const VerifyOtpPage = () => {
     }
   }, [countdown]);
 
+  // OTP expiry timer (10 minutes)
+  useEffect(() => {
+    if (otpTimer > 0 && !isOtpExpired) {
+      const timer = setTimeout(() => setOtpTimer(otpTimer - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (otpTimer === 0 && !isOtpExpired) {
+      setIsOtpExpired(true);
+      toast({
+        title: "OTP Expired",
+        description: "Your OTP has expired. Please request a new one.",
+        variant: "destructive",
+      });
+    }
+  }, [otpTimer, isOtpExpired]);
+
+  // Format timer display (MM:SS)
+  const formatTimer = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
   const handleOtpChange = (otpValue: string) => {
     setOtp(otpValue);
   };
 
   const handleResendOtp = async () => {
-    if (!email || isResending || countdown > 0) return;
+    if (!email || isResending || (countdown > 0 && !isOtpExpired)) return;
 
     setIsResending(true);
     try {
       const response = await axios.post(
-        "https://sever.bizengo.com/api/auth/resend-otp", // Add this endpoint if available
+        "https://server.bizengo.com/api/auth/resend-otp", // Fixed typo: server not sever
         { email: email },
         {
           headers: {
@@ -88,7 +117,9 @@ const VerifyOtpPage = () => {
           title: "OTP Sent",
           description: "A new OTP has been sent to your email.",
         });
-        setCountdown(60); // 60 second cooldown
+        setCountdown(60); // 60 second cooldown for manual resends
+        setOtpTimer(600); // Reset 10-minute timer
+        setIsOtpExpired(false); // Reset expiry status
         setOtp(""); // Clear current OTP
       } else {
         throw new Error(response.data.message || "Failed to resend OTP");
@@ -119,6 +150,15 @@ const VerifyOtpPage = () => {
       toast({
         title: "Error",
         description: "Please enter a complete 6-digit OTP.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isOtpExpired) {
+      toast({
+        title: "Error",
+        description: "OTP has expired. Please request a new one.",
         variant: "destructive",
       });
       return;
@@ -242,8 +282,117 @@ const VerifyOtpPage = () => {
               </div>
             )}
 
+            {/* Enhanced Timer Display */}
+            <div className="text-center space-y-3">
+              <div
+                className={`relative mx-auto w-32 h-32 rounded-full border-4 ${
+                  isOtpExpired
+                    ? "border-red-200 bg-red-50"
+                    : otpTimer <= 60
+                    ? "border-orange-200 bg-orange-50"
+                    : "border-blue-200 bg-blue-50"
+                } flex items-center justify-center`}
+              >
+                {/* Circular progress ring */}
+                <svg
+                  className="absolute inset-0 w-full h-full -rotate-90"
+                  viewBox="0 0 120 120"
+                >
+                  <circle
+                    cx="60"
+                    cy="60"
+                    r="54"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    className={
+                      isOtpExpired
+                        ? "text-red-200"
+                        : otpTimer <= 60
+                        ? "text-orange-200"
+                        : "text-blue-200"
+                    }
+                  />
+                  <circle
+                    cx="60"
+                    cy="60"
+                    r="54"
+                    fill="none"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    className={`transition-all duration-1000 ${
+                      isOtpExpired
+                        ? "stroke-red-500"
+                        : otpTimer <= 60
+                        ? "stroke-orange-500"
+                        : "stroke-blue-500"
+                    }`}
+                    style={{
+                      strokeDasharray: `${2 * Math.PI * 54}`,
+                      strokeDashoffset: `${
+                        2 * Math.PI * 54 * (1 - otpTimer / 600)
+                      }`,
+                    }}
+                  />
+                </svg>
+
+                {/* Timer content */}
+                <div className="text-center z-10">
+                  <Clock
+                    className={`h-6 w-6 mx-auto mb-1 ${
+                      isOtpExpired
+                        ? "text-red-500"
+                        : otpTimer <= 60
+                        ? "text-orange-500"
+                        : "text-blue-500"
+                    }`}
+                  />
+                  <div
+                    className={`font-mono text-lg font-bold ${
+                      isOtpExpired
+                        ? "text-red-700"
+                        : otpTimer <= 60
+                        ? "text-orange-700"
+                        : "text-blue-700"
+                    }`}
+                  >
+                    {isOtpExpired ? "00:00" : formatTimer(otpTimer)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Status text */}
+              <div
+                className={`text-sm font-medium ${
+                  isOtpExpired
+                    ? "text-red-600"
+                    : otpTimer <= 60
+                    ? "text-orange-600"
+                    : "text-gray-600"
+                }`}
+              >
+                {isOtpExpired
+                  ? "OTP has expired"
+                  : otpTimer <= 60
+                  ? "OTP expires soon!"
+                  : "OTP valid for"}
+              </div>
+
+              {/* Additional info */}
+              {!isOtpExpired && (
+                <p className="text-xs text-gray-500">
+                  Please enter your OTP before it expires
+                </p>
+              )}
+            </div>
+
             <div className="flex justify-center">
-              <InputOTP maxLength={6} value={otp} onChange={handleOtpChange}>
+              <InputOTP
+                maxLength={6}
+                value={otp}
+                onChange={handleOtpChange}
+                disabled={isOtpExpired}
+              >
                 <InputOTPGroup>
                   <InputOTPSlot index={0} />
                   <InputOTPSlot index={1} />
@@ -260,8 +409,8 @@ const VerifyOtpPage = () => {
 
             <Button
               onClick={handleVerifyOtp}
-              disabled={isLoading || !email || otp.length !== 6}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              disabled={isLoading || !email || otp.length !== 6 || isOtpExpired}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50"
             >
               {isLoading ? "Verifying..." : "Verify OTP"}
             </Button>
@@ -271,16 +420,25 @@ const VerifyOtpPage = () => {
               Didn't receive the code?{" "}
               <button
                 onClick={handleResendOtp}
-                disabled={isResending || countdown > 0}
+                disabled={isResending || (countdown > 0 && !isOtpExpired)}
                 className="text-blue-600 hover:text-blue-700 font-medium disabled:text-gray-400 disabled:cursor-not-allowed"
               >
                 {isResending
                   ? "Sending..."
-                  : countdown > 0
+                  : countdown > 0 && !isOtpExpired
                   ? `Resend in ${countdown}s`
                   : "Resend OTP"}
               </button>
             </div>
+
+            {/* OTP Expired Message */}
+            {isOtpExpired && (
+              <div className="text-center p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-700 font-medium">
+                  Your OTP has expired. Please request a new one to continue.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

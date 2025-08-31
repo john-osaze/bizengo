@@ -252,27 +252,51 @@ const Login = () => {
             // Close loading modal first
             closeNotification();
 
-            setTimeout(() => {
-              showNotification(
-                "success",
-                "Welcome Back!",
-                profileData?.business_name
-                  ? `Good to see you again, ${profileData.business_name}! Redirecting to your dashboard...`
-                  : "Successfully signed in to your account. Redirecting to marketplace..."
-              );
+            // Check user role
+            const userRole = profileData?.role;
 
-              // Clear form
-              setEmail("");
-              setPassword("");
-
-              // Redirect after showing success message
+            if (userRole && userRole.toLowerCase() === "vendor") {
+              // User is a vendor, redirect to vendor auth
               setTimeout(() => {
-                const redirectUrl =
-                  sessionStorage.getItem("redirectUrl") || "/marketplace";
-                router.push(redirectUrl);
-                sessionStorage.removeItem("redirectUrl");
-              }, 2000);
-            }, 500);
+                showNotification(
+                  "error",
+                  "Vendor Access Required",
+                  "You are a vendor. Please use the vendor login portal to access your account."
+                );
+
+                // Clear form
+                setEmail("");
+                setPassword("");
+
+                // Redirect to vendor auth after showing notification
+                setTimeout(() => {
+                  router.push("/vendor/auth");
+                }, 3000);
+              }, 500);
+            } else {
+              // User is a buyer or other role, proceed with normal login
+              setTimeout(() => {
+                showNotification(
+                  "success",
+                  "Welcome Back!",
+                  profileData?.business_name
+                    ? `Good to see you again, ${profileData.business_name}! Redirecting to your dashboard...`
+                    : "Successfully signed in to your account. Redirecting to marketplace..."
+                );
+
+                // Clear form
+                setEmail("");
+                setPassword("");
+
+                // Redirect after showing success message
+                setTimeout(() => {
+                  const redirectUrl =
+                    sessionStorage.getItem("redirectUrl") || "/marketplace";
+                  router.push(redirectUrl);
+                  sessionStorage.removeItem("redirectUrl");
+                }, 2000);
+              }, 500);
+            }
           } else {
             console.error("Failed to fetch user profile");
 

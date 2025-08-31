@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Icon from "@/components/AppIcon";
 
 interface VendorData {
@@ -14,7 +14,7 @@ interface VendorData {
 
 interface VendorHeaderProps {
   onLogout: () => void;
-  vendorData?: VendorData; // Add this line
+  vendorData?: VendorData;
 }
 
 const navigationItems = [
@@ -31,19 +31,48 @@ const VendorHeader: React.FC<VendorHeaderProps> = ({
   vendorData: propVendorData,
 }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [pathname, setPathname] = useState<string>("");
   const [vendorData, setVendorData] = useState<VendorData | null>(
     propVendorData || null
   );
+
+  // More comprehensive check for auth pages
+  const isAuthPage = () => {
+    const authPatterns = [
+      "/auth/",
+      "/vendor/auth",
+      "/vendor/signup",
+      "/vendor/verify-otp",
+      "/vendor/forgot-password",
+      "/vendor/reset-password",
+      "verify-otp",
+      "login",
+      "signup",
+      "forgot-password",
+      "reset-password",
+    ];
+
+    const shouldHide = authPatterns.some(
+      (pattern) => pathname.includes(pattern) || pathname.endsWith(pattern)
+    );
+
+    // Debug log to see what's happening
+
+    return shouldHide;
+  };
+
+  // Don't render header on auth pages
+  if (isAuthPage()) {
+    console.log("VendorHeader - Hiding header for auth page");
+    return null;
+  }
 
   const handleNavigation = (path: string) => {
     router.push(path);
   };
 
   useEffect(() => {
-    setPathname(window.location.pathname);
-
     // Only fetch if no vendor data was passed as prop
     if (!propVendorData) {
       const fetchProfile = async () => {
@@ -211,10 +240,10 @@ const VendorHeader: React.FC<VendorHeaderProps> = ({
                       onLogout();
                       setShowUserMenu(false);
                     }}
-                    className="w-full flex items-center space-x-3 px-3 py-2 text-left rounded-lg hover:bg-error-50 text-error transition-colors"
+                    className="w-full flex items-center space-x-3 px-3 py-2 text-left rounded-lg hover:bg-surface transition-colors"
                   >
                     <Icon name="LogOut" size={16} />
-                    <span className="text-sm">Sign Out</span>
+                    <span className="text-sm text-error">Sign Out</span>
                   </button>
                 </div>
               </div>
