@@ -8,12 +8,60 @@ import LocationMap from "./components/LocationMap";
 import SellerCard from "./components/SellerCard";
 import SimilarProducts from "./components/SimilarProducts";
 import PriceComparison from "./components/PriceComparison";
-// import ActionBar from "../actionBar/page";
-// import ActionBar from "./components/ActionBar";
 import { CheckCircle, AlertCircle, X } from "lucide-react";
-import { Product, Seller, ProductLocation } from "@/types/types";
 
-// Instead of "Location", rename it
+// API Response Types
+interface ApiProduct {
+  id: number;
+  product_name: string;
+  description: string;
+  product_price: number;
+  category: string;
+  images: string[];
+  status: string;
+  visibility: boolean;
+  vendor: {
+    id: number;
+    business_name: string;
+    email: string;
+  };
+}
+
+// Local Product Interface (transformed from API)
+interface Product {
+  id: string;
+  title: string;
+  price: number;
+  originalPrice?: number;
+  discount?: number;
+  condition: string;
+  rating: number;
+  reviewCount: number;
+  distance: number;
+  location: {
+    address: string;
+    lat: number;
+    lng: number;
+  };
+  images: string[];
+  description: string;
+  specifications: { [key: string]: string };
+  seller: {
+    id: string;
+    name: string;
+    avatar: string;
+    rating: number;
+    reviewCount: number;
+    responseTime: string;
+    memberSince: string;
+    verifiedSeller: boolean;
+  };
+  availability: string;
+  lastUpdated: Date;
+  views: number;
+  watchers: number;
+}
+
 interface PriceComparisonItem {
   id: string;
   seller: string;
@@ -90,6 +138,8 @@ const NotificationToast: React.FC<{
 
 const ProductDetail = () => {
   const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [cartQuantity, setCartQuantity] = useState(0);
   const [showFullDescription, setShowFullDescription] = useState(false);
@@ -100,9 +150,12 @@ const ProductDetail = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Get auth token from localStorage
+  // Get auth token from sessionStorage (as specified in your note)
   const getAuthToken = () => {
-    return localStorage.getItem("RSToken") || "";
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("RSToken") || "";
+    }
+    return "";
   };
 
   // Add notification
@@ -148,132 +201,92 @@ const ProductDetail = () => {
     return null;
   };
 
-  // Mock product data
-  const mockProduct: Product = {
-    id: "prod_001",
-    title: "iPhone 14 Pro Max - 256GB Deep Purple",
-    price: 899,
-    originalPrice: 1099,
-    discount: 18,
-    condition: "Like New",
-    rating: 4.8,
-    reviewCount: 127,
-    distance: 0.8,
-    location: {
-      address: "Downtown Electronics Store, 123 Main St, San Francisco, CA",
-      lat: 37.7749,
-      lng: -122.4194,
-    },
-    images: [
-      "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1580910051074-3eb694886505?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1567581935884-3349723552ca?w=800&h=600&fit=crop",
-    ],
-    description: `This iPhone 14 Pro Max is in excellent condition with minimal signs of use. The device has been well-maintained and comes with original packaging and accessories.
-
-Features include the powerful A16 Bionic chip, Pro camera system with 48MP main camera, and the stunning Super Retina XDR display with ProMotion technology. The Deep Purple color adds a premium touch to this flagship device.
-
-Battery health is at 95% and the device has never been dropped or damaged. All functions work perfectly including Face ID, cameras, and wireless charging.`,
-    specifications: {
-      Storage: "256GB",
-      Color: "Deep Purple",
-      "Screen Size": "6.7 inches",
-      "Battery Health": "95%",
-      Warranty: "6 months seller warranty",
-      Accessories: "Original box, charger, unused EarPods",
-    },
-    seller: {
-      id: "seller_001",
-      name: "TechHub Electronics",
-      avatar:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
-      rating: 4.9,
-      reviewCount: 342,
-      responseTime: "Usually responds within 2 hours",
-      memberSince: "2019",
-      verifiedSeller: true,
-    },
-    availability: "Available",
-    lastUpdated: new Date(Date.now() - 3600000),
-    views: 89,
-    watchers: 12,
+  // Transform API product to local Product interface
+  const transformApiProduct = (apiProduct: ApiProduct): Product => {
+    return {
+      id: apiProduct.id.toString(),
+      title: apiProduct.product_name,
+      price: apiProduct.product_price / 100, // Convert cents to dollars
+      originalPrice: (apiProduct.product_price / 100) * 1.2, // Mock original price (20% higher)
+      discount: 17, // Mock discount
+      condition: "Like New", // Mock condition
+      rating: 4.7, // Mock rating
+      reviewCount: 89, // Mock review count
+      distance: 1.2, // Mock distance
+      location: {
+        address: "Electronic Store, Lagos, Nigeria", // Mock location
+        lat: 6.5244, // Lagos coordinates
+        lng: 3.3792,
+      },
+      images:
+        apiProduct.images.length > 0
+          ? apiProduct.images
+          : [
+              "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&h=600&fit=crop",
+            ],
+      description: apiProduct.description,
+      specifications: {
+        Category: apiProduct.category,
+        Status: apiProduct.status,
+        "Product ID": apiProduct.id.toString(),
+        Seller: apiProduct.vendor.business_name,
+      },
+      seller: {
+        id: apiProduct.vendor.id.toString(),
+        name: apiProduct.vendor.business_name,
+        avatar:
+          "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
+        rating: 4.8,
+        reviewCount: 156,
+        responseTime: "Usually responds within 2 hours",
+        memberSince: "2020",
+        verifiedSeller: true,
+      },
+      availability:
+        apiProduct.status === "active" ? "Available" : "Unavailable",
+      lastUpdated: new Date(Date.now() - 3600000), // Mock last updated
+      views: 67, // Mock views
+      watchers: 8, // Mock watchers
+    };
   };
 
-  const similarProducts: SimilarProduct[] = [
-    {
-      id: "prod_002",
-      title: "iPhone 14 Pro - 128GB Space Black",
-      price: 749,
-      originalPrice: 999,
-      image:
-        "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=300&h=300&fit=crop",
-      distance: 1.2,
-      rating: 4.7,
-      condition: "Excellent",
-    },
-    {
-      id: "prod_003",
-      title: "iPhone 13 Pro Max - 256GB Sierra Blue",
-      price: 699,
-      originalPrice: 899,
-      image:
-        "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&h=300&fit=crop",
-      distance: 0.5,
-      rating: 4.6,
-      condition: "Good",
-    },
-    {
-      id: "prod_004",
-      title: "iPhone 14 Plus - 256GB Purple",
-      price: 649,
-      originalPrice: 799,
-      image:
-        "https://images.unsplash.com/photo-1580910051074-3eb694886505?w=300&h=300&fit=crop",
-      distance: 2.1,
-      rating: 4.8,
-      condition: "Like New",
-    },
-  ];
-
-  const priceComparisons: PriceComparisonItem[] = [
-    {
-      id: "comp_001",
-      seller: "Mobile World",
-      price: 929,
-      condition: "New",
-      distance: 1.5,
-      rating: 4.6,
-    },
-    {
-      id: "comp_002",
-      seller: "Phone Paradise",
-      price: 949,
-      condition: "New",
-      distance: 2.3,
-      rating: 4.4,
-    },
-    {
-      id: "comp_003",
-      seller: "Digital Store",
-      price: 879,
-      condition: "Like New",
-      distance: 3.1,
-      rating: 4.7,
-    },
-  ];
-
+  // Fetch product data
   useEffect(() => {
-    // Simulate loading product data
-    setProduct(mockProduct);
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-    // Check if product is in wishlist (mock)
-    const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
-    setIsWishlisted(wishlist.includes(mockProduct.id));
-  }, []);
+        // Get product ID from URL params
+        const productId = searchParams.get("id") || "1"; // Default to 1 if no ID
+
+        const apiProduct = await apiCall(
+          `https://server.bizengo.com/api/marketplace/products/${productId}`
+        );
+
+        const transformedProduct = transformApiProduct(apiProduct);
+        setProduct(transformedProduct);
+
+        // Check if product is in wishlist
+        if (typeof window !== "undefined") {
+          const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
+          setIsWishlisted(wishlist.includes(transformedProduct.id));
+        }
+      } catch (err) {
+        console.error("Error fetching product:", err);
+        setError(err instanceof Error ? err.message : "Failed to load product");
+        addNotification("error", "Failed to load product details");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [searchParams]);
 
   const handleWishlistToggle = () => {
-    if (!product) return;
+    if (!product || typeof window === "undefined") return;
+
     const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
     let updatedWishlist;
 
@@ -289,19 +302,17 @@ Battery health is at 95% and the device has never been dropped or damaged. All f
     setIsWishlisted(!isWishlisted);
   };
 
-  // Add to Cart with API call
+  // Add to Cart with real API call
   const handleAddToCart = async (quantity: number = 1) => {
     if (!product) return;
 
-    // For demo purposes, we'll use product ID 1 (Smartphone X10 from your API)
-    const productId = 1;
-
     try {
       setIsAddingToCart(true);
+
       await apiCall("https://server.bizengo.com/api/cart/add", {
         method: "POST",
         body: JSON.stringify({
-          product_id: productId,
+          product_id: parseInt(product.id),
           quantity: quantity,
         }),
       });
@@ -350,7 +361,7 @@ Battery health is at 95% and the device has never been dropped or damaged. All f
       try {
         await navigator.share({
           title: product.title,
-          text: `Check out this ${product.title} for $${product.price}`,
+          text: `Check out this ${product.title} for ₦${product.price}`,
           url: window.location.href,
         });
       } catch (error) {
@@ -362,12 +373,98 @@ Battery health is at 95% and the device has never been dropped or damaged. All f
     }
   };
 
-  if (!product) {
+  // Mock data for components that don't have API endpoints yet
+  const similarProducts: SimilarProduct[] = [
+    {
+      id: "2",
+      title: "iPhone 14 Pro - 128GB Space Black",
+      price: 749,
+      originalPrice: 999,
+      image:
+        "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=300&h=300&fit=crop",
+      distance: 1.2,
+      rating: 4.7,
+      condition: "Excellent",
+    },
+    {
+      id: "3",
+      title: "Samsung Galaxy S23 Ultra",
+      price: 699,
+      originalPrice: 899,
+      image:
+        "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&h=300&fit=crop",
+      distance: 0.5,
+      rating: 4.6,
+      condition: "Good",
+    },
+    {
+      id: "4",
+      title: "Google Pixel 7 Pro",
+      price: 649,
+      originalPrice: 799,
+      image:
+        "https://images.unsplash.com/photo-1580910051074-3eb694886505?w=300&h=300&fit=crop",
+      distance: 2.1,
+      rating: 4.8,
+      condition: "Like New",
+    },
+  ];
+
+  const priceComparisons: PriceComparisonItem[] = [
+    {
+      id: "comp_001",
+      seller: "Mobile World",
+      price: 929,
+      condition: "New",
+      distance: 1.5,
+      rating: 4.6,
+    },
+    {
+      id: "comp_002",
+      seller: "Phone Paradise",
+      price: 949,
+      condition: "New",
+      distance: 2.3,
+      rating: 4.4,
+    },
+    {
+      id: "comp_003",
+      seller: "Digital Store",
+      price: 879,
+      condition: "Like New",
+      distance: 3.1,
+      rating: 4.7,
+    },
+  ];
+
+  if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-text-secondary">Loading product details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-text-primary mb-2">
+            Product Not Found
+          </h2>
+          <p className="text-text-secondary mb-4">
+            {error || "The product you're looking for doesn't exist."}
+          </p>
+          <button
+            onClick={() => router.back()}
+            className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+          >
+            Go Back
+          </button>
         </div>
       </div>
     );
@@ -428,7 +525,9 @@ Battery health is at 95% and the device has never been dropped or damaged. All f
               <div className="space-y-3">
                 <button
                   onClick={handleBuyNow}
-                  disabled={isAddingToCart}
+                  disabled={
+                    isAddingToCart || product.availability !== "Available"
+                  }
                   className="w-full bg-primary text-white py-4 rounded-lg font-semibold hover:bg-primary-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isAddingToCart ? (
@@ -437,12 +536,14 @@ Battery health is at 95% and the device has never been dropped or damaged. All f
                       <span>Processing...</span>
                     </div>
                   ) : (
-                    `Buy Now - ${product.price}`
+                    `Buy Now - ₦${product.price.toLocaleString()}`
                   )}
                 </button>
                 <button
                   onClick={() => handleAddToCart(1)}
-                  disabled={isAddingToCart}
+                  disabled={
+                    isAddingToCart || product.availability !== "Available"
+                  }
                   className="w-full border-2 border-primary text-primary py-4 rounded-lg font-semibold hover:bg-primary-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isAddingToCart ? (
@@ -455,6 +556,14 @@ Battery health is at 95% and the device has never been dropped or damaged. All f
                   )}
                 </button>
               </div>
+
+              {product.availability !== "Available" && (
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-yellow-800 text-sm font-medium">
+                    This product is currently unavailable.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -517,17 +626,44 @@ Battery health is at 95% and the device has never been dropped or damaged. All f
               }
               isMobile={true}
             />
+
+            {/* Mobile Action Buttons */}
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-border p-4 space-y-3">
+              <button
+                onClick={handleBuyNow}
+                disabled={
+                  isAddingToCart || product.availability !== "Available"
+                }
+                className="w-full bg-primary text-white py-4 rounded-lg font-semibold hover:bg-primary-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isAddingToCart ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Processing...</span>
+                  </div>
+                ) : (
+                  `Buy Now - ₦${product.price.toLocaleString()}`
+                )}
+              </button>
+              <button
+                onClick={() => handleAddToCart(1)}
+                disabled={
+                  isAddingToCart || product.availability !== "Available"
+                }
+                className="w-full border-2 border-primary text-primary py-4 rounded-lg font-semibold hover:bg-primary-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isAddingToCart ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    <span>Adding to Cart...</span>
+                  </div>
+                ) : (
+                  `Add to Cart ${cartQuantity > 0 ? `(${cartQuantity})` : ""}`
+                )}
+              </button>
+            </div>
           </div>
         </div>
-        {/* 
-        <ActionBar
-          product={product}
-          cartQuantity={cartQuantity}
-          onAddToCart={() => handleAddToCart(1)}
-          onBuyNow={handleBuyNow}
-          onWishlistToggle={handleWishlistToggle}
-          isWishlisted={isWishlisted}
-        /> */}
       </div>
     </div>
   );
@@ -535,7 +671,16 @@ Battery health is at 95% and the device has never been dropped or damaged. All f
 
 const ProductDetailPage = () => {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-text-secondary">Loading...</p>
+          </div>
+        </div>
+      }
+    >
       <ProductDetail />
     </Suspense>
   );
