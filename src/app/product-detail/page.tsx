@@ -32,7 +32,7 @@ interface Product {
   id: string;
   title: string;
   price: number;
-  originalPrice?: number;
+  originalPrice: number;
   discount?: number;
   condition: string;
   rating: number;
@@ -206,8 +206,8 @@ const ProductDetail = () => {
     return {
       id: apiProduct.id.toString(),
       title: apiProduct.product_name,
-      price: apiProduct.product_price / 100, // Convert cents to dollars
-      originalPrice: (apiProduct.product_price / 100) * 1.2, // Mock original price (20% higher)
+      price: apiProduct.product_price / 100,
+      originalPrice: (apiProduct.product_price / 100) * 1.2,
       discount: 17, // Mock discount
       condition: "Like New", // Mock condition
       rating: 4.7, // Mock rating
