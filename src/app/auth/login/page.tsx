@@ -21,6 +21,7 @@ import {
   XCircle,
   AlertTriangle,
   X,
+  Shield,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -228,9 +229,40 @@ const Login = () => {
           if (data.access_token) {
             sessionStorage.setItem("RSToken", data.access_token);
           }
+          // Store user data from login response
+          if (data.user) {
+            sessionStorage.setItem("RSUser", JSON.stringify(data.user));
+          }
         }
 
-        // Fetch user profile
+        // Close loading modal first
+        closeNotification();
+
+        // Check user role from login response
+        const userRole = data.user?.role;
+
+        if (userRole && userRole.toLowerCase() === "admin") {
+          // User is an admin, redirect to admin panel
+          setTimeout(() => {
+            showNotification(
+              "success",
+              "Admin Access Granted!",
+              `Welcome Administrator! Redirecting to admin panel...`
+            );
+
+            // Clear form
+            setEmail("");
+            setPassword("");
+
+            // Redirect to admin panel after showing success message
+            setTimeout(() => {
+              router.push("/Adminstration");
+            }, 2000);
+          }, 500);
+          return; // Exit early for admin users
+        }
+
+        // For non-admin users, fetch user profile for additional details
         try {
           const profileResponse = await fetch(
             "https://server.bizengo.com/api/user/profile",
@@ -246,16 +278,20 @@ const Login = () => {
             const profileData = await profileResponse.json();
 
             if (typeof window !== "undefined" && profileData) {
-              sessionStorage.setItem("RSUser", JSON.stringify(profileData));
+              // Merge profile data with existing user data
+              const existingUser = JSON.parse(
+                sessionStorage.getItem("RSUser") || "{}"
+              );
+              sessionStorage.setItem(
+                "RSUser",
+                JSON.stringify({ ...existingUser, ...profileData })
+              );
             }
 
-            // Close loading modal first
-            closeNotification();
+            // Check user role from profile data
+            const profileRole = profileData?.role || userRole;
 
-            // Check user role
-            const userRole = profileData?.role;
-
-            if (userRole && userRole.toLowerCase() === "vendor") {
+            if (profileRole && profileRole.toLowerCase() === "vendor") {
               // User is a vendor, redirect to vendor auth
               setTimeout(() => {
                 showNotification(
@@ -300,9 +336,6 @@ const Login = () => {
           } else {
             console.error("Failed to fetch user profile");
 
-            // Close loading modal first
-            closeNotification();
-
             setTimeout(() => {
               showNotification(
                 "success",
@@ -325,9 +358,6 @@ const Login = () => {
           }
         } catch (profileError) {
           console.error("Error fetching user profile:", profileError);
-
-          // Close loading modal first
-          closeNotification();
 
           setTimeout(() => {
             showNotification(
