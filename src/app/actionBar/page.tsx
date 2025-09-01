@@ -1,7 +1,7 @@
 // "use client";
 
-// import React from 'react';
-// import { Heart, ShoppingCart } from 'lucide-react';
+// import React from "react";
+// import { Heart, ShoppingCart } from "lucide-react";
 
 // interface ActionBarProps {
 //   product: any;
@@ -18,7 +18,7 @@
 //   onAddToCart,
 //   onBuyNow,
 //   onWishlistToggle,
-//   isWishlisted
+//   isWishlisted,
 // }: ActionBarProps) {
 //   return (
 //     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 lg:hidden z-40">
@@ -28,14 +28,12 @@
 //           onClick={onWishlistToggle}
 //           className={`p-3 rounded-lg border transition-colors duration-200 ${
 //             isWishlisted
-//               ? 'bg-red-50 border-red-200 text-red-600'
-//               : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+//               ? "bg-red-50 border-red-200 text-red-600"
+//               : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
 //           }`}
-//           aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+//           aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
 //         >
-//           <Heart
-//             className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`}
-//           />
+//           <Heart className={`w-5 h-5 ${isWishlisted ? "fill-current" : ""}`} />
 //         </button>
 
 //         {/* Add to Cart Button */}
@@ -44,9 +42,7 @@
 //           className="flex-1 flex items-center justify-center space-x-2 py-3 px-4 bg-gray-100 border border-gray-300 text-gray-800 rounded-lg font-semibold hover:bg-gray-200 transition-colors duration-200"
 //         >
 //           <ShoppingCart className="w-5 h-5" />
-//           <span>
-//             Add to Cart {cartQuantity > 0 ? `(${cartQuantity})` : ''}
-//           </span>
+//           <span>Add to Cart {cartQuantity > 0 ? `(${cartQuantity})` : ""}</span>
 //         </button>
 
 //         {/* Buy Now Button */}

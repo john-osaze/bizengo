@@ -1,18 +1,18 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-// import { useSearchParams } from 'next/navigation';
-import RoleContextNavigation, {
-  RoleProvider,
-} from "@/components/ui/RoleContextNavigation";
-import Icon from "@/components/AppIcon";
-import Button from "@/components/ui/new/Button";
-import ProductGrid from "./components/ProductGrid";
-import FilterPanel from "./components/FilterPanel";
-import FilterChips from "./components/FilterChips";
-import SortDropdown from "./components/SortDropdown";
-import QuickViewModal from "./components/QuickViewModal";
-import { useRouter } from "next/navigation";
+import {
+  Heart,
+  ShoppingCart,
+  Plus,
+  Minus,
+  Star,
+  Filter,
+  RefreshCw,
+  Grid3X3,
+  List,
+  X,
+} from "lucide-react";
 
 // Type definitions
 interface Product {
@@ -30,6 +30,19 @@ interface Product {
   category: string;
   isWishlisted?: boolean;
   description: string;
+}
+
+interface CartItem {
+  id: number;
+  product_id: number;
+  quantity: number;
+  product: {
+    id: number;
+    product_name: string;
+    product_price: number;
+    images: string[];
+    category: string;
+  };
 }
 
 interface PriceRange {
@@ -67,7 +80,7 @@ type FilterType =
   | "rating"
   | "availability";
 
-// API Response interfaces based on your provided structure
+// API Response interfaces
 interface ApiVendor {
   business_name: string;
   email: string;
@@ -76,14 +89,14 @@ interface ApiVendor {
 
 interface ApiProduct {
   category: string;
-  description: string;
   id: number;
   images: string[];
   product_name: string;
   product_price: number;
-  status: string;
   vendor: ApiVendor;
-  visibility: boolean;
+  description?: string;
+  status?: string;
+  visibility?: boolean;
 }
 
 interface ApiResponse {
@@ -91,11 +104,224 @@ interface ApiResponse {
   products: ApiProduct[];
 }
 
-const MarketplaceBrowse: React.FC = () => {
-  // const searchParams = useSearchParams()
-  // const [searchParameters, setSearchParameters] = useSearchParams();
+interface Notification {
+  id: string;
+  type: "success" | "error" | "info";
+  message: string;
+}
+
+// Notification Component
+const NotificationToast = ({
+  notification,
+  onClose,
+}: {
+  notification: Notification;
+  onClose: (id: string) => void;
+}) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  const bgColors = {
+    success: "bg-green-50 border-green-200 text-green-800",
+    error: "bg-red-50 border-red-200 text-red-800",
+    info: "bg-blue-50 border-blue-200 text-blue-800",
+  };
+
+  return (
+    <div
+      className={`fixed top-4 right-4 z-50 p-4 rounded-lg border ${
+        bgColors[notification.type]
+      } shadow-lg max-w-sm`}
+      style={{
+        animation: "slideInFromRight 0.3s ease-out",
+      }}
+    >
+      <div className="flex items-start space-x-3">
+        <div className="flex-1">
+          <p className="text-sm font-medium">{notification.message}</p>
+        </div>
+        <button
+          onClick={() => onClose(notification.id)}
+          className="text-gray-400 hover:text-gray-600 text-lg"
+        >
+          ×
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Action Bar Component
+const ActionBar = ({
+  product,
+  cartQuantity,
+  onAddToCart,
+  onBuyNow,
+  onWishlistToggle,
+  isWishlisted,
+}: {
+  product: Product;
+  cartQuantity: number;
+  onAddToCart: () => void;
+  onBuyNow: () => void;
+  onWishlistToggle: () => void;
+  isWishlisted: boolean;
+}) => {
+  return (
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 lg:hidden z-40">
+      <div className="flex items-center space-x-3">
+        {/* Wishlist Button */}
+        <button
+          onClick={onWishlistToggle}
+          className={`p-3 rounded-lg border transition-colors duration-200 ${
+            isWishlisted
+              ? "bg-red-50 border-red-200 text-red-600"
+              : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
+          }`}
+          aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+        >
+          <Heart className={`w-5 h-5 ${isWishlisted ? "fill-current" : ""}`} />
+        </button>
+
+        {/* Add to Cart Button */}
+        <button
+          onClick={onAddToCart}
+          className="flex-1 flex items-center justify-center space-x-2 py-3 px-4 bg-gray-100 border border-gray-300 text-gray-800 rounded-lg font-semibold hover:bg-gray-200 transition-colors duration-200"
+        >
+          <ShoppingCart className="w-5 h-5" />
+          <span>Add to Cart {cartQuantity > 0 ? `(${cartQuantity})` : ""}</span>
+        </button>
+
+        {/* Buy Now Button */}
+        <button
+          onClick={onBuyNow}
+          className="flex-1 py-3 px-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200"
+        >
+          Buy Now - ₦{product?.price?.toLocaleString() || 0}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Product Card Component
+const ProductCard = ({
+  product,
+  onAddToCart,
+  onQuickView,
+  onAddToWishlist,
+  cartQuantities,
+}: {
+  product: Product;
+  onAddToCart: (product: Product) => void;
+  onQuickView: (product: Product) => void;
+  onAddToWishlist: (productId: number | string, isWishlisted: boolean) => void;
+  cartQuantities: { [key: number]: number };
+}) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const cartQuantity = cartQuantities[product.id] || 0;
+
+  return (
+    <div
+      className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Product Image */}
+      <div className="relative aspect-square overflow-hidden bg-gray-100">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-full h-full object-cover"
+          loading="lazy"
+        />
+
+        {/* Wishlist Button */}
+        <button
+          onClick={() => onAddToWishlist(product.id, !product.isWishlisted)}
+          className={`absolute top-3 right-3 p-2 rounded-full transition-all duration-200 ${
+            product.isWishlisted
+              ? "bg-red-500 text-white"
+              : "bg-white/80 text-gray-600 hover:bg-white"
+          }`}
+        >
+          <Heart
+            className={`w-4 h-4 ${product.isWishlisted ? "fill-current" : ""}`}
+          />
+        </button>
+
+        {/* Quick View Button */}
+        {isHovered && (
+          <button
+            onClick={() => onQuickView(product)}
+            className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-medium opacity-0 hover:opacity-100 transition-opacity duration-200"
+          >
+            Quick View
+          </button>
+        )}
+      </div>
+
+      {/* Product Details */}
+      <div className="p-4">
+        <div className="mb-2">
+          <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">
+            {product.name}
+          </h3>
+          <p className="text-xs text-gray-500">{product.vendor}</p>
+        </div>
+
+        {/* Rating */}
+        <div className="flex items-center space-x-1 mb-2">
+          <div className="flex items-center">
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                className={`w-3 h-3 ${
+                  i < Math.floor(product.rating)
+                    ? "text-yellow-400 fill-current"
+                    : "text-gray-300"
+                }`}
+              />
+            ))}
+          </div>
+          <span className="text-xs text-gray-500">({product.reviewCount})</span>
+        </div>
+
+        {/* Price */}
+        <div className="mb-3">
+          <div className="flex items-center space-x-2">
+            <span className="font-bold text-lg text-gray-900">
+              ₦{product.price.toLocaleString()}
+            </span>
+            {product.salePrice && (
+              <span className="text-sm text-gray-500 line-through">
+                ₦{product.originalPrice?.toLocaleString()}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Add to Cart Button */}
+        <button
+          onClick={() => onAddToCart(product)}
+          className="w-full flex items-center justify-center space-x-2 py-2 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200"
+        >
+          <ShoppingCart className="w-4 h-4" />
+          <span>Add to Cart {cartQuantity > 0 ? `(${cartQuantity})` : ""}</span>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Main Marketplace Component
+export default function MarketplaceBrowse() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [allProducts, setAllProducts] = useState<Product[]>([]); // Store all fetched products
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -104,11 +330,13 @@ const MarketplaceBrowse: React.FC = () => {
   const [isQuickViewOpen, setIsQuickViewOpen] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const mobileWidth = window.innerWidth < 768;
-    setIsMobile(mobileWidth);
-  }, []);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [cartQuantities, setCartQuantities] = useState<{
+    [key: number]: number;
+  }>({});
+  const [isAddingToCart, setIsAddingToCart] = useState<{
+    [key: number]: boolean;
+  }>({});
 
   const [filters, setFilters] = useState<Filters>({
     categories: [],
@@ -125,7 +353,114 @@ const MarketplaceBrowse: React.FC = () => {
   const [sortBy, setSortBy] = useState<SortOption>("relevance");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const router = useRouter();
+  // Get auth token from sessionStorage
+  const getAuthToken = () => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("RSToken") || "";
+    }
+    return "";
+  };
+
+  // Add notification
+  const addNotification = (
+    type: "success" | "error" | "info",
+    message: string
+  ) => {
+    const id = Date.now().toString();
+    setNotifications((prev) => [...prev, { id, type, message }]);
+  };
+
+  // Remove notification
+  const removeNotification = (id: string) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
+
+  // API call helper for cart operations
+  const cartApiCall = async (url: string, options: RequestInit = {}) => {
+    const token = getAuthToken();
+
+    if (!token) {
+      throw new Error("No authentication token found. Please log in again.");
+    }
+
+    const headers = {
+      accept: "application/json",
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      ...options.headers,
+    };
+
+    const response = await fetch(url, {
+      ...options,
+      headers,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Cart API Error:", response.status, errorText);
+      throw new Error(
+        `HTTP ${response.status}: ${errorText || "Request failed"}`
+      );
+    }
+
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      return await response.json();
+    }
+    return null;
+  };
+
+  // Add to cart function
+  const addToCart = async (product: Product, quantity: number = 1) => {
+    try {
+      setIsAddingToCart((prev) => ({ ...prev, [product.id]: true }));
+
+      await cartApiCall("https://server.bizengo.com/api/cart/add", {
+        method: "POST",
+        body: JSON.stringify({
+          product_id: product.id,
+          quantity: quantity,
+        }),
+      });
+
+      // Update local cart quantities
+      setCartQuantities((prev) => ({
+        ...prev,
+        [product.id]: (prev[product.id] || 0) + quantity,
+      }));
+
+      addNotification("success", `${product.name} added to cart!`);
+    } catch (error: any) {
+      console.error("Error adding to cart:", error);
+
+      if (error.message.includes("No authentication token")) {
+        addNotification("error", "Please log in to add items to cart");
+      } else if (error.message.includes("401")) {
+        addNotification("error", "Session expired. Please log in again");
+      } else {
+        addNotification("error", "Failed to add item to cart");
+      }
+    } finally {
+      setIsAddingToCart((prev) => ({ ...prev, [product.id]: false }));
+    }
+  };
+
+  // Fetch current cart to get quantities
+  const fetchCartQuantities = async () => {
+    try {
+      const data = await cartApiCall("https://server.bizengo.com/api/cart");
+
+      const quantities: { [key: number]: number } = {};
+      (data.cart_items || []).forEach((item: any) => {
+        quantities[item.id] = item.quantity;
+      });
+
+      setCartQuantities(quantities);
+    } catch (error) {
+      console.error("Error fetching cart quantities:", error);
+      // Don't show error notification for this as it's background operation
+    }
+  };
 
   // API URL
   const API_URL = "https://server.bizengo.com/api/marketplace/popular-products";
@@ -136,17 +471,20 @@ const MarketplaceBrowse: React.FC = () => {
       id: apiProduct.id,
       name: apiProduct.product_name,
       vendor: apiProduct.vendor.business_name,
-      price: apiProduct.product_price / 100, // Convert from cents to dollars if needed, adjust as necessary
-      salePrice: undefined, // Not provided in API, could add logic later
-      originalPrice: apiProduct.product_price / 100,
-      rating: 4.5, // Default rating since not provided in API
-      reviewCount: Math.floor(Math.random() * 200) + 10, // Random review count since not provided
-      image: apiProduct.images[0] || "https://via.placeholder.com/400x400",
-      images: apiProduct.images,
-      stock: apiProduct.status === "active" && apiProduct.visibility ? 10 : 0, // Default stock logic
+      price: apiProduct.product_price,
+      salePrice: undefined,
+      originalPrice: apiProduct.product_price,
+      rating: 4.5,
+      reviewCount: Math.floor(Math.random() * 200) + 10,
+      image:
+        apiProduct.images && apiProduct.images.length > 0
+          ? apiProduct.images[0]
+          : "https://via.placeholder.com/400x400?text=No+Image",
+      images: apiProduct.images || [],
+      stock: 10,
       category: apiProduct.category.toLowerCase(),
       isWishlisted: false,
-      description: apiProduct.description,
+      description: apiProduct.description || "No description available",
     };
   };
 
@@ -169,9 +507,13 @@ const MarketplaceBrowse: React.FC = () => {
 
       const data: ApiResponse = await response.json();
 
-      // Transform API products to our Product interface
       const transformedProducts = data.products
-        .filter((product) => product.status === "active" && product.visibility) // Only active and visible products
+        .filter(
+          (product) =>
+            product.product_name &&
+            product.product_price !== undefined &&
+            product.vendor?.business_name
+        )
         .map(transformApiProduct);
 
       return transformedProducts;
@@ -187,20 +529,27 @@ const MarketplaceBrowse: React.FC = () => {
       setIsMobile(window.innerWidth < 768);
     };
 
+    handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [router]);
+  }, []);
 
-  // Initial load of products from API
+  // Initial load of products and cart quantities
   useEffect(() => {
-    const initializeProducts = async () => {
+    const initializeData = async () => {
       setLoading(true);
       const fetchedProducts = await fetchProductsFromAPI();
       setAllProducts(fetchedProducts);
+
+      // Fetch cart quantities if user is logged in
+      if (getAuthToken()) {
+        await fetchCartQuantities();
+      }
+
       setLoading(false);
     };
 
-    initializeProducts();
+    initializeData();
   }, []);
 
   // Filter and sort products when filters/search/sort changes
@@ -214,7 +563,6 @@ const MarketplaceBrowse: React.FC = () => {
 
       setLoading(reset);
 
-      // Start with all fetched products
       let filteredProducts = [...allProducts];
 
       // Apply search filter
@@ -300,7 +648,6 @@ const MarketplaceBrowse: React.FC = () => {
           filteredProducts.sort((a, b) => a.category.localeCompare(b.category));
           break;
         default:
-          // relevance - keep original order
           break;
       }
 
@@ -331,52 +678,6 @@ const MarketplaceBrowse: React.FC = () => {
     }
   }, [loadProducts, loading, hasMore]);
 
-  const handleFiltersChange = (newFilters: Filters): void => {
-    setFilters(newFilters);
-    setCurrentPage(1);
-  };
-
-  const handleRemoveFilter = (type: FilterType, value: string): void => {
-    const newFilters = { ...filters };
-
-    switch (type) {
-      case "category":
-        newFilters.categories = newFilters.categories.filter(
-          (id) => id !== value
-        );
-        break;
-      case "vendor":
-        newFilters.vendors = newFilters.vendors.filter((id) => id !== value);
-        break;
-      case "priceRange":
-        newFilters.priceRange = { min: "", max: "" };
-        break;
-      case "rating":
-        newFilters.minRating = 0;
-        break;
-      case "availability":
-        newFilters.availability[value as keyof AvailabilityFilters] = false;
-        break;
-    }
-
-    setFilters(newFilters);
-  };
-
-  const handleClearAllFilters = (): void => {
-    const clearedFilters: Filters = {
-      categories: [],
-      vendors: [],
-      priceRange: { min: "", max: "" },
-      minRating: 0,
-      availability: {
-        inStock: false,
-        onSale: false,
-        freeShipping: false,
-      },
-    };
-    setFilters(clearedFilters);
-  };
-
   const handleAddToWishlist = (
     productId: number | string,
     isWishlisted: boolean
@@ -386,181 +687,501 @@ const MarketplaceBrowse: React.FC = () => {
         product.id === productId ? { ...product, isWishlisted } : product
       )
     );
+    setAllProducts((prev) =>
+      prev.map((product) =>
+        product.id === productId ? { ...product, isWishlisted } : product
+      )
+    );
   };
 
-  const handleQuickView = (product: Product | any): void => {
+  const handleQuickView = (product: Product): void => {
     setSelectedProduct(product);
     setIsQuickViewOpen(true);
   };
 
-  const handleAddToCart = (product: Product): void => {
-    // Simulate adding to cart
-    console.log("Added to cart:", product);
-    // You would typically dispatch to a cart context or state management here
+  const handleBuyNow = (product: Product): void => {
+    // Add to cart first, then redirect to checkout
+    addToCart(product, 1);
+    // In a real app, you would navigate to checkout page
+    addNotification("info", "Redirecting to checkout...");
   };
 
-  const getActiveFiltersCount = (): number => {
-    return (
-      filters.categories.length +
-      filters.vendors.length +
-      (filters.priceRange.min || filters.priceRange.max ? 1 : 0) +
-      (filters.minRating > 0 ? 1 : 0) +
-      Object.values(filters.availability).filter(Boolean).length
-    );
-  };
-
-  // Refresh products function for manual refresh
   const handleRefreshProducts = async (): Promise<void> => {
     setLoading(true);
     const fetchedProducts = await fetchProductsFromAPI();
     setAllProducts(fetchedProducts);
     setCurrentPage(1);
+
+    // Refresh cart quantities
+    if (getAuthToken()) {
+      await fetchCartQuantities();
+    }
   };
 
+  // Get unique categories and vendors for filters
+  const uniqueCategories = [...new Set(allProducts.map((p) => p.category))];
+  const uniqueVendors = [...new Set(allProducts.map((p) => p.vendor))];
+
   return (
-    <RoleProvider>
-      <RoleContextNavigation>
-        <div className="min-h-screen bg-background">
-          <div className="flex h-screen pt-0 md:pt-0">
-            {/* Desktop Filter Sidebar */}
-            {!isMobile && (
-              <FilterPanel
-                isOpen={true}
-                filters={filters}
-                onFiltersChange={handleFiltersChange}
-                isMobile={false}
-              />
-            )}
+    <div className="min-h-screen bg-gray-50">
+      <style jsx>{`
+        @keyframes slideInFromRight {
+          0% {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          100% {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      `}</style>
 
-            {/* Main Content */}
-            <div className="flex-1 flex flex-col overflow-hidden">
-              {/* Header Controls */}
-              <div className="bg-card border-b border-border">
-                {/* Search Results Info */}
-                <div className="px-4 py-3 border-b border-border">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <h1 className="text-lg font-semibold text-foreground">
-                        {searchQuery
-                          ? `Search results for "${searchQuery}"`
-                          : "All Products"}
-                      </h1>
-                      <span className="text-sm text-muted-foreground">
-                        {loading
-                          ? "Loading..."
-                          : `${products.length} products found`}
-                      </span>
-                      {fetchError && (
-                        <span className="text-sm text-destructive">
-                          {fetchError}
-                        </span>
-                      )}
-                    </div>
+      {/* Notifications */}
+      {notifications.map((notification) => (
+        <NotificationToast
+          key={notification.id}
+          notification={notification}
+          onClose={removeNotification}
+        />
+      ))}
 
-                    <div className="flex items-center space-x-2">
-                      {/* Refresh Button */}
-                      <Button
-                        variant="outline"
-                        onClick={handleRefreshProducts}
-                        iconName="RefreshCw"
-                        iconPosition="left"
-                        size="sm"
-                      >
-                        Refresh
-                      </Button>
+      <div className="flex h-screen">
+        {/* Desktop Filter Sidebar */}
+        {!isMobile && (
+          <div className="w-80 bg-white border-r border-gray-200 overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-semibold">Filters</h2>
+                <button
+                  onClick={() =>
+                    setFilters({
+                      categories: [],
+                      vendors: [],
+                      priceRange: { min: "", max: "" },
+                      minRating: 0,
+                      availability: {
+                        inStock: false,
+                        onSale: false,
+                        freeShipping: false,
+                      },
+                    })
+                  }
+                  className="text-sm text-blue-600 hover:text-blue-700"
+                >
+                  Clear All
+                </button>
+              </div>
 
-                      {/* Mobile Filter Button */}
-                      {isMobile && (
-                        <Button
-                          variant="outline"
-                          onClick={() => setIsFilterPanelOpen(true)}
-                          iconName="Filter"
-                          iconPosition="left"
-                        >
-                          Filter
-                          {getActiveFiltersCount() > 0 && (
-                            <span className="ml-1 bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full">
-                              {getActiveFiltersCount()}
-                            </span>
-                          )}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Filter Chips */}
-                <FilterChips
-                  activeFilters={filters}
-                  onRemoveFilter={handleRemoveFilter}
-                  onClearAll={handleClearAllFilters}
-                />
-
-                {/* Sort Controls */}
-                <div className="px-4 py-3 flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <span className="text-sm text-muted-foreground">
-                      Sort by:
-                    </span>
-                    <SortDropdown
-                      currentSort={sortBy}
-                      onSortChange={setSortBy}
-                    />
-                  </div>
-
-                  {/* View Toggle - Future Enhancement */}
-                  <div className="hidden md:flex items-center space-x-2">
-                    <button className="p-2 rounded-md bg-primary text-primary-foreground">
-                      <Icon name="Grid3X3" size={16} />
-                    </button>
-                    <button className="p-2 rounded-md hover:bg-muted transition-colors duration-200">
-                      <Icon name="List" size={16} />
-                    </button>
-                  </div>
+              {/* Categories */}
+              <div className="mb-6">
+                <h3 className="font-medium mb-3">Categories</h3>
+                <div className="space-y-2">
+                  {uniqueCategories.map((category) => (
+                    <label
+                      key={category}
+                      className="flex items-center space-x-2"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={filters.categories.includes(category)}
+                        onChange={(e) => {
+                          const newCategories = e.target.checked
+                            ? [...filters.categories, category]
+                            : filters.categories.filter((c) => c !== category);
+                          setFilters((prev) => ({
+                            ...prev,
+                            categories: newCategories,
+                          }));
+                        }}
+                        className="rounded"
+                      />
+                      <span className="text-sm capitalize">{category}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
 
-              {/* Product Grid */}
-              <div className="flex-1 overflow-y-auto">
-                <ProductGrid
-                  products={products}
-                  loading={loading}
-                  hasMore={hasMore}
-                  onLoadMore={handleLoadMore}
-                  onAddToWishlist={handleAddToWishlist}
-                  onQuickView={handleQuickView}
-                  onAddToCart={handleAddToCart}
-                />
+              {/* Price Range */}
+              <div className="mb-6">
+                <h3 className="font-medium mb-3">Price Range</h3>
+                <div className="flex space-x-2">
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    value={filters.priceRange.min}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        priceRange: { ...prev.priceRange, min: e.target.value },
+                      }))
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    value={filters.priceRange.max}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        priceRange: { ...prev.priceRange, max: e.target.value },
+                      }))
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Header Controls */}
+          <div className="bg-white border-b border-gray-200">
+            {/* Search and Controls */}
+            <div className="px-4 py-3">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex-1 max-w-md">
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div className="flex items-center space-x-2 ml-4">
+                  {/* Refresh Button */}
+                  <button
+                    onClick={handleRefreshProducts}
+                    disabled={loading}
+                    className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    <RefreshCw
+                      className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
+                    />
+                  </button>
+
+                  {/* Mobile Filter Button */}
+                  {isMobile && (
+                    <button
+                      onClick={() => setIsFilterPanelOpen(true)}
+                      className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    >
+                      <Filter className="w-4 h-4" />
+                      <span>Filter</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Results Info and Sort */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <span className="text-sm text-gray-600">
+                    {loading
+                      ? "Loading..."
+                      : `${products.length} products found`}
+                  </span>
+                  {fetchError && (
+                    <span className="text-sm text-red-600">{fetchError}</span>
+                  )}
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600">Sort by:</span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as SortOption)}
+                    className="px-3 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="relevance">Relevance</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="rating">Highest Rated</option>
+                    <option value="newest">Newest</option>
+                    <option value="popular">Most Popular</option>
+                    <option value="category">Category</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Mobile Filter Panel */}
-          {isMobile && (
-            <FilterPanel
-              isOpen={isFilterPanelOpen}
-              onClose={() => setIsFilterPanelOpen(false)}
-              filters={filters}
-              onFiltersChange={handleFiltersChange}
-              isMobile={true}
-            />
-          )}
+          {/* Product Grid */}
+          <div className="flex-1 overflow-y-auto p-4">
+            {loading && products.length === 0 ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : products.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <div className="text-6xl mb-4">📦</div>
+                <p className="text-lg">No products found</p>
+                <p className="text-sm">
+                  Try adjusting your filters or search terms
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {products.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      onAddToCart={addToCart}
+                      onQuickView={handleQuickView}
+                      onAddToWishlist={handleAddToWishlist}
+                      cartQuantities={cartQuantities}
+                    />
+                  ))}
+                </div>
 
-          {/* Quick View Modal */}
-          <QuickViewModal
-            product={selectedProduct}
-            isOpen={isQuickViewOpen}
-            onClose={() => setIsQuickViewOpen(false)}
-            onAddToCart={handleAddToCart}
-            onAddToWishlist={handleAddToWishlist}
-          />
-
-          {/* Mobile Bottom Padding for Navigation */}
-          <div className="h-16 md:hidden" />
+                {/* Load More Button */}
+                {hasMore && (
+                  <div className="text-center mt-8">
+                    <button
+                      onClick={handleLoadMore}
+                      disabled={loading}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                    >
+                      {loading ? (
+                        <div className="flex items-center space-x-2">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span>Loading...</span>
+                        </div>
+                      ) : (
+                        "Load More Products"
+                      )}
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
-      </RoleContextNavigation>
-    </RoleProvider>
-  );
-};
 
-export default MarketplaceBrowse;
+        {/* Mobile Filter Panel */}
+        {isMobile && isFilterPanelOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
+            <div className="absolute right-0 top-0 h-full w-80 bg-white overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-lg font-semibold">Filters</h2>
+                  <button
+                    onClick={() => setIsFilterPanelOpen(false)}
+                    className="p-2 hover:bg-gray-100 rounded-full"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Categories */}
+                <div className="mb-6">
+                  <h3 className="font-medium mb-3">Categories</h3>
+                  <div className="space-y-2">
+                    {uniqueCategories.map((category) => (
+                      <label
+                        key={category}
+                        className="flex items-center space-x-2"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={filters.categories.includes(category)}
+                          onChange={(e) => {
+                            const newCategories = e.target.checked
+                              ? [...filters.categories, category]
+                              : filters.categories.filter(
+                                  (c) => c !== category
+                                );
+                            setFilters((prev) => ({
+                              ...prev,
+                              categories: newCategories,
+                            }));
+                          }}
+                          className="rounded"
+                        />
+                        <span className="text-sm capitalize">{category}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Price Range */}
+                <div className="mb-6">
+                  <h3 className="font-medium mb-3">Price Range</h3>
+                  <div className="flex space-x-2">
+                    <input
+                      type="number"
+                      placeholder="Min"
+                      value={filters.priceRange.min}
+                      onChange={(e) =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          priceRange: {
+                            ...prev.priceRange,
+                            min: e.target.value,
+                          },
+                        }))
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Max"
+                      value={filters.priceRange.max}
+                      onChange={(e) =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          priceRange: {
+                            ...prev.priceRange,
+                            max: e.target.value,
+                          },
+                        }))
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    />
+                  </div>
+                </div>
+
+                {/* Apply Filters Button */}
+                <button
+                  onClick={() => setIsFilterPanelOpen(false)}
+                  className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                >
+                  Apply Filters
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Quick View Modal */}
+        {isQuickViewOpen && selectedProduct && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold">Quick View</h2>
+                  <button
+                    onClick={() => setIsQuickViewOpen(false)}
+                    className="p-2 hover:bg-gray-100 rounded-full"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Product Image */}
+                  <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                    <img
+                      src={selectedProduct.image}
+                      alt={selectedProduct.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  {/* Product Details */}
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2">
+                      {selectedProduct.name}
+                    </h3>
+                    <p className="text-gray-600 mb-2">
+                      {selectedProduct.vendor}
+                    </p>
+
+                    {/* Rating */}
+                    <div className="flex items-center space-x-2 mb-4">
+                      <div className="flex items-center">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-4 h-4 ${
+                              i < Math.floor(selectedProduct.rating)
+                                ? "text-yellow-400 fill-current"
+                                : "text-gray-300"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-sm text-gray-500">
+                        ({selectedProduct.reviewCount} reviews)
+                      </span>
+                    </div>
+
+                    {/* Price */}
+                    <div className="mb-4">
+                      <span className="text-2xl font-bold text-gray-900">
+                        ₦{selectedProduct.price.toLocaleString()}
+                      </span>
+                    </div>
+
+                    {/* Description */}
+                    <p className="text-gray-700 mb-6">
+                      {selectedProduct.description}
+                    </p>
+
+                    {/* Action Buttons */}
+                    <div className="space-y-3">
+                      <button
+                        onClick={() => {
+                          addToCart(selectedProduct);
+                          setIsQuickViewOpen(false);
+                        }}
+                        disabled={isAddingToCart[selectedProduct.id]}
+                        className="w-full flex items-center justify-center space-x-2 py-3 px-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
+                      >
+                        <ShoppingCart className="w-5 h-5" />
+                        <span>
+                          {isAddingToCart[selectedProduct.id]
+                            ? "Adding..."
+                            : "Add to Cart"}
+                        </span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          handleBuyNow(selectedProduct);
+                          setIsQuickViewOpen(false);
+                        }}
+                        className="w-full py-3 px-4 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-900 transition-colors"
+                      >
+                        Buy Now
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Action Bar - Only show when a product is selected */}
+        {isMobile && selectedProduct && (
+          <ActionBar
+            product={selectedProduct}
+            cartQuantity={cartQuantities[selectedProduct.id] || 0}
+            onAddToCart={() => addToCart(selectedProduct)}
+            onBuyNow={() => handleBuyNow(selectedProduct)}
+            onWishlistToggle={() =>
+              handleAddToWishlist(
+                selectedProduct.id,
+                !selectedProduct.isWishlisted
+              )
+            }
+            isWishlisted={selectedProduct.isWishlisted || false}
+          />
+        )}
+      </div>
+    </div>
+  );
+}

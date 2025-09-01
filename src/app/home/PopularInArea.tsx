@@ -17,7 +17,7 @@ interface PopularItem {
   description: string;
 }
 
-// API Response interfaces
+// API Response interfaces - updated to match actual API response
 interface ApiVendor {
   business_name: string;
   email: string;
@@ -26,14 +26,15 @@ interface ApiVendor {
 
 interface ApiProduct {
   category: string;
-  description: string;
   id: number;
   images: string[];
   product_name: string;
   product_price: number;
-  status: string;
   vendor: ApiVendor;
-  visibility: boolean;
+  // Optional fields that may not exist in API response
+  description?: string;
+  status?: string;
+  visibility?: boolean;
 }
 
 interface ApiResponse {
@@ -51,17 +52,22 @@ const PopularInArea: React.FC = () => {
   // API URL
   const API_URL = "https://server.bizengo.com/api/marketplace/popular-products";
 
-  // Function to generate random distance for demo purposes
-  const generateRandomDistance = (): string => {
-    const distance = (Math.random() * 3 + 0.5).toFixed(1);
-    return `${distance} miles`;
+  // Function to generate consistent random distance based on product ID
+  const generateDistance = (productId: number): string => {
+    const seed = productId;
+    const distance = (((Math.sin(seed * 9999) * 10000) % 3) + 0.5).toFixed(1);
+    return `${Math.abs(parseFloat(distance))} miles`;
   };
 
-  // Function to generate random rating and reviews for demo purposes
-  const generateRandomRating = () => {
-    const rating = +(Math.random() * 1.5 + 3.5).toFixed(1); // 3.5 to 5.0
-    const reviews = Math.floor(Math.random() * 200) + 20; // 20 to 220
-    return { rating, reviews };
+  // Function to generate consistent random rating and reviews based on product ID
+  const generateRatingAndReviews = (productId: number) => {
+    const seed = productId;
+    const rating = +(((Math.sin(seed * 1111) * 10000) % 1.5) + 3.5).toFixed(1); // 3.5 to 5.0
+    const reviews = Math.floor((Math.sin(seed * 2222) * 10000) % 200) + 20; // 20 to 220
+    return {
+      rating: Math.abs(rating),
+      reviews: Math.abs(reviews),
+    };
   };
 
   // Function to generate popularity score based on rating and reviews
@@ -74,21 +80,24 @@ const PopularInArea: React.FC = () => {
 
   // Function to transform API product to PopularItem
   const transformApiProduct = (apiProduct: ApiProduct): PopularItem => {
-    const { rating, reviews } = generateRandomRating();
+    const { rating, reviews } = generateRatingAndReviews(apiProduct.id);
     const popularity = calculatePopularity(rating, reviews);
 
     return {
       id: apiProduct.id,
       title: apiProduct.product_name,
-      price: apiProduct.product_price / 100, // Assuming price is in cents, adjust if needed
-      image: apiProduct.images[0] || "https://via.placeholder.com/400x400",
-      distance: generateRandomDistance(),
+      price: apiProduct.product_price, // Keep as is since your prices appear to be in correct format
+      image:
+        apiProduct.images && apiProduct.images.length > 0
+          ? apiProduct.images[0]
+          : "https://via.placeholder.com/400x400?text=No+Image",
+      distance: generateDistance(apiProduct.id),
       seller: apiProduct.vendor.business_name,
       rating,
       reviews,
       popularity,
       category: apiProduct.category,
-      description: apiProduct.description,
+      description: apiProduct.description || "No description available",
     };
   };
 
@@ -113,10 +122,19 @@ const PopularInArea: React.FC = () => {
       const data: ApiResponse = await response.json();
 
       // Transform API products to PopularItem format
+      // Fixed: Remove problematic filter and only validate essential fields
       const transformedProducts = data.products
-        .filter((product) => product.status === "active" && product.visibility) // Only active and visible products
+        .filter(
+          (product) =>
+            // Only filter out products missing essential data
+            product.product_name &&
+            product.product_price !== undefined &&
+            product.vendor?.business_name
+        )
         .map(transformApiProduct)
         .sort((a, b) => b.popularity - a.popularity); // Sort by popularity descending
+
+      console.log("Transformed popular products:", transformedProducts); // Debug log
 
       setPopularItems(transformedProducts);
     } catch (err) {
@@ -312,7 +330,7 @@ const PopularInArea: React.FC = () => {
 
               <div className="flex items-center justify-between mb-2">
                 <span className="text-base font-semibold text-text-primary">
-                  ${item.price}
+                  ₦{item.price.toLocaleString()}
                 </span>
                 <span
                   className={`text-xs font-medium ${getPopularityColor(
