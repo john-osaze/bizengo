@@ -1,11 +1,23 @@
 // app/admin/user/[account_type]/[id]/page.tsx
 import UserProfileClient from "./UserProfileClient";
+
+// Props interface for Next.js 15+ (params is now a Promise)
+interface PageProps {
+  params: Promise<{
+    account_type: string;
+    id: string;
+  }>;
+}
+
+// Generate static params for build optimization
 export async function generateStaticParams() {
   const accountTypes = ["vendor", "customer", "admin"];
-  const staticParams = [];
+  const staticParams: { account_type: string; id: string }[] = [];
 
   for (const accountType of accountTypes) {
-    for (let i = 1; i <= 100; i++) {
+    // Generate fewer static params to avoid build issues
+    // You can adjust this range based on your needs
+    for (let i = 1; i <= 10; i++) {
       staticParams.push({
         account_type: accountType,
         id: i.toString(),
@@ -14,14 +26,6 @@ export async function generateStaticParams() {
   }
 
   return staticParams;
-}
-
-// Props interface for Next.js 15+ (params is now a Promise)
-interface PageProps {
-  params: Promise<{
-    account_type: string;
-    id: string;
-  }>;
 }
 
 // Server component
