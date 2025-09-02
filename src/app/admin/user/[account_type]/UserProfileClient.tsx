@@ -1,7 +1,8 @@
+// app/admin/user/[account_type]/[id]/UserProfileClient.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Users,
@@ -32,28 +33,6 @@ import {
   MoreVertical,
 } from "lucide-react";
 
-// Add this function for static generation
-export async function generateStaticParams() {
-  // You need to return all possible combinations of account_type and id
-  // This is a basic example - adjust based on your actual data
-  const accountTypes = ["vendor", "customer", "admin"];
-  const staticParams = [];
-
-  // Generate params for common account types
-  for (const accountType of accountTypes) {
-    // You might want to fetch actual user IDs from your API here
-    // For now, generating some example IDs
-    for (let i = 1; i <= 100; i++) {
-      staticParams.push({
-        account_type: accountType,
-        id: i.toString(),
-      });
-    }
-  }
-
-  return staticParams;
-}
-
 // Types
 interface UserDetails {
   id: number;
@@ -76,9 +55,15 @@ interface UserDetails {
   status: string;
 }
 
-const UserProfilePage: React.FC = () => {
+interface UserProfileClientProps {
+  params: {
+    account_type: string;
+    id: string;
+  };
+}
+
+const UserProfileClient: React.FC<UserProfileClientProps> = ({ params }) => {
   const router = useRouter();
-  const params = useParams();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<UserDetails | null>(null);
   const [activeTab, setActiveTab] = useState<
@@ -728,4 +713,4 @@ const UserProfilePage: React.FC = () => {
   );
 };
 
-export default UserProfilePage;
+export default UserProfileClient;
