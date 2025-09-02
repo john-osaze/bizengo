@@ -1,5 +1,5 @@
-// app/admin/user/[...params]/page.tsx
-import UserProfileClient from "../UserProfileClient";
+// app/admin/user/[account_type]/[id]/page.tsx
+import UserProfileClient from "./UserProfileClient";
 export async function generateStaticParams() {
   const accountTypes = ["vendor", "customer", "admin"];
   const staticParams = [];
@@ -7,7 +7,8 @@ export async function generateStaticParams() {
   for (const accountType of accountTypes) {
     for (let i = 1; i <= 100; i++) {
       staticParams.push({
-        params: [accountType, i.toString()],
+        account_type: accountType,
+        id: i.toString(),
       });
     }
   }
@@ -15,28 +16,18 @@ export async function generateStaticParams() {
   return staticParams;
 }
 
-// Props interface for catch-all routes
+// Props interface for Next.js 15+ (params is now a Promise)
 interface PageProps {
-  params: {
-    params: string[];
-  };
+  params: Promise<{
+    account_type: string;
+    id: string;
+  }>;
 }
 
 // Server component
-export default function UserProfilePage({ params }: PageProps) {
-  const [accountType, id] = params.params;
+export default async function UserProfilePage({ params }: PageProps) {
+  // Await the params Promise in Next.js 15+
+  const resolvedParams = await params;
 
-  // Validate params
-  if (!accountType || !id) {
-    return <div>Invalid URL parameters</div>;
-  }
-
-  return (
-    <UserProfileClient
-      params={{
-        account_type: accountType,
-        id: id,
-      }}
-    />
-  );
+  return <UserProfileClient params={resolvedParams} />;
 }

@@ -5,17 +5,12 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
-  Users,
-  X,
   Shield,
   Bell,
   LogOut,
   Loader2,
   User,
-  Mail,
-  Phone,
   Building2,
-  Calendar,
   UserCheck,
   Copy,
   Edit,
@@ -28,9 +23,9 @@ import {
   Star,
   AlertTriangle,
   CheckCircle,
-  Clock,
   Eye,
   MoreVertical,
+  Calendar,
 } from "lucide-react";
 
 // Types
