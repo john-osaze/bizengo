@@ -44,6 +44,22 @@ const Header: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const isAuthPage = () => {
+    const authPatterns = ["/Adminstration"];
+
+    const shouldHide = authPatterns.some(
+      (pattern) => pathname.includes(pattern) || pathname.endsWith(pattern)
+    );
+
+    // Debug log to see what's happening
+    console.log("VendorHeader - isAuthPage:", shouldHide);
+
+    return shouldHide;
+  };
+  if (isAuthPage()) {
+    console.log("VendorHeader - Hiding header for auth page");
+    return null;
+  }
 
   useEffect(() => {
     const checkAuth = async () => {
