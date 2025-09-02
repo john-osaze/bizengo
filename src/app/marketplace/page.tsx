@@ -133,7 +133,7 @@ const NotificationToast = ({
 
   return (
     <div
-      className={`fixed top-4 right-4 z-50 p-4 rounded-lg border ${
+      className={`fixed top-20 right-4 z-1 p-4 rounded-lg border ${
         bgColors[notification.type]
       } shadow-lg max-w-sm`}
       style={{
