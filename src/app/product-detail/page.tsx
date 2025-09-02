@@ -114,7 +114,7 @@ const NotificationToast: React.FC<{
 
   return (
     <div
-      className={`fixed top-4 right-4 z-50 p-4 rounded-lg border ${
+      className={`fixed top-4 right-4 z-1 p-4 rounded-lg border ${
         bgColors[notification.type]
       } shadow-lg max-w-sm animate-in slide-in-from-right duration-300`}
     >
@@ -454,7 +454,7 @@ const ProductDetail = () => {
         <div className="text-center">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-text-primary mb-2">
-            Product Not Found
+            Product Not Available
           </h2>
           <p className="text-text-secondary mb-4">
             {error || "The product you're looking for doesn't exist."}

@@ -242,6 +242,11 @@ const Login = () => {
         const userRole = data.user?.role;
 
         if (userRole && userRole.toLowerCase() === "admin") {
+          if (data.access_token && typeof window !== "undefined") {
+            localStorage.setItem("adminToken", data.access_token);
+            localStorage.setItem("isAdminLoggedIn", "true");
+          } // Add this closing brace
+
           // User is an admin, redirect to admin panel
           setTimeout(() => {
             showNotification(
@@ -261,7 +266,6 @@ const Login = () => {
           }, 500);
           return; // Exit early for admin users
         }
-
         // For non-admin users, fetch user profile for additional details
         try {
           const profileResponse = await fetch(
