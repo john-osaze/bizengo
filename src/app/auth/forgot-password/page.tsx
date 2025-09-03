@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
 
     try {
       const response = await fetch(
-        "https://server.bizengo.com/api/auth/forgot-password",
+        "https://server.bizengo.com/api/auth/request-password-reset",
         {
           method: "POST",
           headers: {
@@ -60,7 +60,7 @@ export default function ForgotPasswordPage() {
         });
         // Navigate to verification page with email
         router.push(
-          `/tools/auth/verify-reset-code?email=${encodeURIComponent(email)}`
+          `/auth/verify-reset-code?email=${encodeURIComponent(email)}`
         );
       } else {
         toast({
@@ -85,7 +85,7 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-md">
         <div className="mb-8">
           <Link
-            href="/tools"
+            href="/auth/login"
             className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />

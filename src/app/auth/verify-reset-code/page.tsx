@@ -1,5 +1,5 @@
 "use client";
-import { ArrowLeft, Shield, RotateCcw } from "lucide-react";
+import { ArrowLeft, Shield, RotateCcw, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -32,6 +32,10 @@ export default function VerifyResetCodePage() {
 function VerifyResetCodeContent() {
   const [code, setCode] = useState("");
   const [email, setEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const router = useRouter();
@@ -43,7 +47,7 @@ function VerifyResetCodeContent() {
       setEmail(emailParam);
     } else {
       // Redirect back to forgot password if no email
-      router.push("/tools/auth/forgot-password");
+      router.push("/auth/forgot-password");
     }
   }, [searchParams, router]);
 
@@ -59,11 +63,38 @@ function VerifyResetCodeContent() {
       return;
     }
 
+    if (!newPassword.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Invalid password",
+        description: "Please enter your new password.",
+      });
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      toast({
+        variant: "destructive",
+        title: "Password too short",
+        description: "Password must be at least 8 characters long.",
+      });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "Passwords don't match",
+        description: "Please make sure both passwords are identical.",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       const response = await fetch(
-        "https://server.bizengo.com/api/auth/verify-password-reset",
+        "https://server.bizengo.com/api/auth/reset-password",
         {
           method: "POST",
           headers: {
@@ -72,7 +103,8 @@ function VerifyResetCodeContent() {
           },
           body: JSON.stringify({
             email,
-            code: code.trim(),
+            new_password: newPassword,
+            otp: code.trim(),
           }),
         }
       );
@@ -81,19 +113,16 @@ function VerifyResetCodeContent() {
 
       if (response.ok) {
         toast({
-          title: "Code verified",
-          description: "Please enter your new password.",
+          title: "Password reset successful",
+          description:
+            "Your password has been reset successfully. You can now sign in with your new password.",
         });
-        // Navigate to reset password page with email and code
-        router.push(
-          `/tools/auth/reset-password?email=${encodeURIComponent(
-            email
-          )}&code=${encodeURIComponent(code)}`
-        );
+        // Navigate to login page
+        router.push("/auth/login");
       } else {
         toast({
           variant: "destructive",
-          title: "Invalid code",
+          title: "Reset failed",
           description:
             data.message || "The verification code is invalid or expired.",
         });
@@ -151,7 +180,7 @@ function VerifyResetCodeContent() {
       <div className="w-full max-w-md">
         <div className="mb-8">
           <Link
-            href="/tools/auth/forgot-password"
+            href="/auth/forgot-password"
             className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -164,11 +193,9 @@ function VerifyResetCodeContent() {
             <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
               <Shield className="h-6 w-6 text-white" />
             </div>
-            <CardTitle className="text-2xl font-bold">
-              Verify Reset Code
-            </CardTitle>
+            <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
             <CardDescription>
-              Enter the verification code sent to
+              Enter the verification code and your new password
               <br />
               <span className="font-medium text-gray-700">{email}</span>
             </CardDescription>
@@ -189,8 +216,77 @@ function VerifyResetCodeContent() {
                   maxLength={6}
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">New Password</Label>
+                <div className="relative">
+                  <Input
+                    id="newPassword"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter new password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    disabled={isLoading}
+                    minLength={8}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    disabled={isLoading}
+                    minLength={8}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+                {confirmPassword.length > 0 && (
+                  <div
+                    className={`text-xs flex items-center gap-1 ${
+                      newPassword === confirmPassword
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {newPassword === confirmPassword ? "✅" : "❌"}
+                    {newPassword === confirmPassword
+                      ? "Passwords match"
+                      : "Passwords do not match"}
+                  </div>
+                )}
+              </div>
+
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Verifying..." : "Verify Code"}
+                {isLoading ? "Resetting Password..." : "Reset Password"}
               </Button>
               <Button
                 type="button"
