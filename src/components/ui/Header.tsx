@@ -52,12 +52,10 @@ const Header: React.FC = () => {
     );
 
     // Debug log to see what's happening
-    console.log("VendorHeader - isAuthPage:", shouldHide);
 
     return shouldHide;
   };
   if (isAuthPage()) {
-    console.log("VendorHeader - Hiding header for auth page");
     return null;
   }
 
