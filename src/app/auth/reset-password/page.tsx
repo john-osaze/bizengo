@@ -49,7 +49,7 @@ function ResetPasswordContent() {
       setCode(codeParam);
     } else {
       // Redirect back to forgot password if missing params
-      router.push("/tools/auth/forgot-password");
+      router.push("/auth/forgot-password");
     }
   }, [searchParams, router]);
 
@@ -130,7 +130,7 @@ function ResetPasswordContent() {
         });
         // Redirect to login after success
         setTimeout(() => {
-          router.push("/tools/auth/login");
+          router.push("/auth/login");
         }, 2000);
       } else {
         toast({
@@ -156,7 +156,7 @@ function ResetPasswordContent() {
       <div className="w-full max-w-md">
         <div className="mb-8">
           <Link
-            href="/tools/auth/verify-reset-code"
+            href="/auth/verify-reset-code"
             className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
