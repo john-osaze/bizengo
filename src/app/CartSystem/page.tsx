@@ -3,13 +3,13 @@ import { useState, useEffect } from "react";
 
 // Types
 interface CartItem {
-  id: number;
+  id: number; // cart_item_id
   product_id: number;
-  quantity: number;
+  quantity: number; // quantity_in_cart
   product: {
-    id: number;
+    id: number; // product_id
     product_name: string;
-    product_price: number;
+    unit_price: number; // ✅ backend field
     images: string[];
     category: string;
   };
@@ -152,14 +152,14 @@ export default function JumiaCartSystem() {
 
       const mappedItems: CartItem[] = (data.cart_items || []).map(
         (item: any) => ({
-          id: item.id,
-          product_id: item.id,
-          quantity: item.quantity,
+          id: item.cart_item_id, // use cart_item_id, not id
+          product_id: item.product_id,
+          quantity: item.quantity_in_cart,
           product: {
-            id: item.id,
-            product_name: item.title,
-            product_price: item.price,
-            images: item.product_images || [],
+            id: item.product_id,
+            product_name: item.product_name,
+            unit_price: item.unit_price, // ✅ correct field
+            images: item.images || [],
             category: item.category,
           },
         })
@@ -167,12 +167,7 @@ export default function JumiaCartSystem() {
 
       setCartItems(mappedItems);
       setTotalItems(mappedItems.reduce((sum, item) => sum + item.quantity, 0));
-      setTotalPrice(
-        mappedItems.reduce(
-          (sum, item) => sum + item.quantity * item.product.product_price,
-          0
-        )
-      );
+      setTotalPrice(data.total_price);
     } catch (error: any) {
       console.error("Error fetching cart:", error);
 
@@ -429,10 +424,7 @@ export default function JumiaCartSystem() {
                           {/* Price */}
                           <div className="flex items-center space-x-2 mb-3">
                             <span className="text-lg sm:text-xl font-bold text-orange-500">
-                              ₦
-                              {(
-                                item.product.product_price ?? 0
-                              ).toLocaleString()}
+                              ₦{(item.product.unit_price ?? 0).toLocaleString()}
                             </span>
                           </div>
 
@@ -561,7 +553,7 @@ export default function JumiaCartSystem() {
                             <div className="text-lg font-bold text-gray-900">
                               ₦
                               {(
-                                item.quantity * item.product.product_price
+                                item.quantity * item.product.unit_price
                               ).toLocaleString()}
                             </div>
                           </div>
