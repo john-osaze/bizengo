@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import Image from "next/image";
-
+// import LandingPage from "./LandingPage";
 import Icon from "@/components/AppIcon";
 import {
   Search,
@@ -23,6 +23,7 @@ import {
   Package,
   Truck,
 } from "lucide-react";
+import LandingPage from "./LandingPage";
 
 interface Storefront {
   id: number;
@@ -389,154 +390,8 @@ const Homepage: React.FC = () => {
           </div>
         </div>
       </section>
-
-      {/* Storefronts Section */}
-      <section className="bg-gray-50 py-12">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              Explore Nearby Storefronts
-            </h2>
-            <p className="text-gray-600">
-              Find the best local services and products from verified sellers.
-            </p>
-          </div>
-
-          {/* Filters */}
-          <div className="flex items-center space-x-4 mb-8 bg-white p-4 rounded-lg shadow-sm overflow-x-auto">
-            <div className="flex items-center space-x-2">
-              <label className="text-gray-700 font-medium text-sm">
-                Category
-              </label>
-              <div className="relative">
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="appearance-none border border-gray-300 rounded px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                >
-                  <option value="All">All</option>
-                  <option value="Food">Food</option>
-                  <option value="Fashion">Fashion</option>
-                  <option value="Maintenance">Maintenance</option>
-                </select>
-                <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <label className="text-gray-700 font-medium text-sm">
-                Distance
-              </label>
-              <div className="relative">
-                <select
-                  value={distance}
-                  onChange={(e) => setDistance(e.target.value)}
-                  className="appearance-none border border-gray-300 rounded px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                >
-                  <option value="1 km">1 km</option>
-                  <option value="2 km">2 km</option>
-                  <option value="5 km">5 km</option>
-                  <option value="10 km">10 km</option>
-                </select>
-                <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-6">
-              <div className="flex items-center space-x-2">
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                </div>
-
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={openOnly}
-                    onChange={(e) => setOpenOnly(e.target.checked)}
-                    className="sr-only"
-                  />
-                  <div
-                    className={`w-10 h-6 rounded-full transition-colors ${
-                      openOnly ? "bg-blue-500" : "bg-gray-300"
-                    }`}
-                  >
-                    <div
-                      className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${
-                        openOnly ? "translate-x-5" : "translate-x-1"
-                      } mt-1`}
-                    ></div>
-                  </div>
-                </label>
-
-                <span className="text-gray-700">Open Now</span>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={verifiedOnly}
-                    onChange={(e) => setVerifiedOnly(e.target.checked)}
-                    className="sr-only"
-                  />
-                  <div
-                    className={`w-10 h-6 rounded-full transition-colors ${
-                      verifiedOnly ? "bg-blue-500" : "bg-gray-300"
-                    }`}
-                  >
-                    <div
-                      className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${
-                        verifiedOnly ? "translate-x-5" : "translate-x-1"
-                      } mt-1`}
-                    ></div>
-                  </div>
-                </label>
-                <span className="text-gray-700">Verified Only</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Storefront Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {storefronts.map((store) => (
-              <div
-                key={store.id}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-              >
-                <div className="h-48 relative overflow-hidden">
-                  <img
-                    src={store.image}
-                    alt={store.name}
-                    className="w-full h-full object-cover"
-                  />
-                  {store.isVerified && (
-                    <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs">
-                      Verified
-                    </div>
-                  )}
-                </div>
-                <div className="p-4">
-                  <h3 className="text-xl font-bold text-gray-900 mb-1">
-                    {store.name}
-                  </h3>
-                  <p className="text-gray-600 text-sm mb-3">
-                    {store.description}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-1 text-gray-500">
-                      <MapPin className="w-4 h-4" />
-                      <span className="text-sm">{store.distance}</span>
-                    </div>
-                    <button className="text-blue-600 text-sm font-medium hover:text-blue-700">
-                      View Store
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <LandingPage />
+      {/* <LandingPage /> */}
     </div>
   );
 };

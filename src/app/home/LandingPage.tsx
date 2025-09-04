@@ -132,100 +132,7 @@ const LandingPage: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900">
-      {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 py-32">
-        <div className="flex items-center justify-between">
-          <div className="max-w-md">
-            <h1 className="text-5xl font-bold text-white mb-6">
-              Buy. Sell.
-              <br />
-              Connect.
-            </h1>
-            <p className="text-blue-100 text-lg mb-8 leading-relaxed">
-              Discover a smarter way to trade locally. Instantly connect with
-              buyers and sellers near you in real-time—fast, simple, and
-              reliable.
-            </p>
-            <div className="flex space-x-4">
-              <button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
-                Create Storefront
-              </button>
-              <button className="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-lg font-semibold transition-colors">
-                Explore Marketplace
-              </button>
-            </div>
-          </div>
-
-          {/* Hero Illustration */}
-          <div className="relative">
-            <div className="w-96 h-80 relative">
-              {/* Background City Silhouette */}
-              <div className="absolute inset-0 opacity-30">
-                <div className="absolute bottom-0 left-0 w-8 h-20 bg-blue-700"></div>
-                <div className="absolute bottom-0 left-10 w-12 h-32 bg-blue-700"></div>
-                <div className="absolute bottom-0 left-24 w-10 h-24 bg-blue-700"></div>
-                <div className="absolute bottom-0 right-20 w-14 h-28 bg-blue-700"></div>
-                <div className="absolute bottom-0 right-4 w-8 h-16 bg-blue-700"></div>
-              </div>
-
-              {/* Delivery Person */}
-              <div className="absolute bottom-16 left-8 w-16 h-20">
-                <div className="w-8 h-10 bg-orange-400 rounded-t-full mx-auto mb-2"></div>
-                <div className="w-12 h-8 bg-orange-400 rounded mx-auto"></div>
-              </div>
-
-              {/* Rating Badge */}
-              <div className="absolute top-8 left-16 bg-white rounded-lg p-2 shadow-lg flex items-center space-x-1">
-                <Star className="w-4 h-4 text-orange-400 fill-current" />
-                <Star className="w-4 h-4 text-orange-400 fill-current" />
-                <Star className="w-4 h-4 text-orange-400 fill-current" />
-              </div>
-
-              {/* Store Front */}
-              <div className="absolute bottom-12 right-16 bg-white rounded-lg shadow-xl w-24 h-16 overflow-hidden">
-                <div className="bg-orange-500 w-full h-3"></div>
-                <div className="p-1">
-                  <div className="flex space-x-1">
-                    <div className="bg-blue-200 w-4 h-6 rounded"></div>
-                    <div className="bg-orange-200 w-4 h-6 rounded"></div>
-                    <div className="bg-green-200 w-4 h-6 rounded"></div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Rating Pop-up */}
-              <div className="absolute top-16 right-8 bg-white rounded-lg p-2 shadow-lg">
-                <div className="flex">
-                  <Star className="w-3 h-3 text-orange-400 fill-current" />
-                  <Star className="w-3 h-3 text-orange-400 fill-current" />
-                </div>
-              </div>
-
-              {/* Chat Bubble */}
-              <div className="absolute top-4 right-4 bg-white rounded-lg p-2 shadow-lg">
-                <MapPin className="w-4 h-4 text-orange-500" />
-              </div>
-
-              {/* Another Person */}
-              <div className="absolute bottom-16 right-8 w-12 h-16">
-                <div className="w-6 h-8 bg-blue-600 rounded-t-full mx-auto mb-1"></div>
-                <div className="w-8 h-6 bg-blue-600 rounded mx-auto"></div>
-              </div>
-
-              {/* Delivery Vehicle */}
-              <div className="absolute bottom-8 left-24">
-                <div className="w-8 h-4 bg-orange-500 rounded"></div>
-                <div className="flex space-x-2 mt-1">
-                  <div className="w-2 h-2 bg-gray-800 rounded-full"></div>
-                  <div className="w-2 h-2 bg-gray-800 rounded-full"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
+    <>
       {/* Storefronts Section */}
       <section className="bg-gray-50 min-h-screen py-12">
         <div className="max-w-7xl mx-auto px-4">
@@ -410,7 +317,7 @@ const LandingPage: React.FC = () => {
           )}
         </div>
       </section>
-    </div>
+    </>
   );
 };
 
