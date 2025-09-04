@@ -226,7 +226,7 @@ const NearbyDeals: React.FC<NearbyDealsProps> = ({ onRefresh }) => {
 
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-text-secondary">
-                        {product.vendor.business_name}
+                        {product.vendor?.business_name ?? "Unknown Vendor"}
                       </span>
                       <button className="bg-primary text-white px-3 py-1 rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors duration-200">
                         View Deal
