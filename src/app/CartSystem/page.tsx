@@ -429,7 +429,10 @@ export default function JumiaCartSystem() {
                           {/* Price */}
                           <div className="flex items-center space-x-2 mb-3">
                             <span className="text-lg sm:text-xl font-bold text-orange-500">
-                              ₦{item.product.product_price.toLocaleString()}
+                              ₦
+                              {(
+                                item.product.product_price ?? 0
+                              ).toLocaleString()}
                             </span>
                           </div>
 
