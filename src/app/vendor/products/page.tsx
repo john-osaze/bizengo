@@ -121,7 +121,7 @@ export interface Product {
   id: number;
   name: string;
   image: string;
-  images?: { id: number; url: string; alt: string }[];
+  images?: ProductImage[];
   category: string;
   sku: string;
   price: number;
@@ -130,7 +130,7 @@ export interface Product {
   stock: number;
   lowStockThreshold?: number;
   status: ProductStatus;
-  createdAt: string; // ISO Date string
+  createdAt: string;
   views: number;
   description?: string;
   barcode?: string;
@@ -141,15 +141,14 @@ export interface Product {
   tags?: string[];
 }
 
-// API Request/Response types
 interface AddProductRequest {
-  category: string;
-  description: string;
-  images: string[];
   product_name: string;
+  description: string;
+  category: string;
   product_price: number;
   status: string;
   visibility: boolean;
+  images: string[]; // ✅ backend only needs URLs
 }
 
 interface EditProductRequest extends AddProductRequest {}
@@ -158,6 +157,12 @@ interface ApiErrorResponse {
   message?: string;
   error?: string;
   status?: string;
+}
+export interface ProductImage {
+  id: number; // must always exist
+  url: string;
+  alt: string;
+  file?: File; // optional (only used during upload)
 }
 
 // Data type from the AddProductModal form
@@ -179,7 +184,7 @@ interface ProductFormData {
   seoTitle: string;
   seoDescription: string;
   tags: string[];
-  images: { id: number; url: string; alt: string; file: File }[];
+  images: ProductImage[]; // ✅ unified
 }
 
 interface VendorData {

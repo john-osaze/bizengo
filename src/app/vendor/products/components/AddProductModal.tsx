@@ -14,9 +14,12 @@ interface ProductDimensions {
 
 interface ProductImage {
   id: number;
-  file: File;
+  file?: File;
   url: string;
   alt: string;
+  serverId?: number; // Server-side image ID for deletion
+  isUploaded?: boolean; // Track if image is uploaded to server
+  isUploading?: boolean; // Track upload status
 }
 
 interface ProductFormData {
@@ -71,15 +74,103 @@ interface Tab {
   label: string;
   icon: string;
 }
-
 interface AddProductModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (formData: ProductFormData) => void;
+  onSave: (formData: ProductFormData) => Promise<void> | void; // ✅ allow both
   editingProduct?: EditingProduct | null | any;
   loading?: boolean;
   disabled?: boolean;
 }
+
+// API Functions
+// API Functions
+const getVendorToken = (): string | null => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("vendorToken");
+  }
+  return null;
+};
+
+const uploadImageToServer = async (
+  file: File
+): Promise<{ id: number; url: string }> => {
+  const token = getVendorToken();
+  const formData = new FormData();
+
+  // Try different field names - test one at a time
+  formData.append("files", file); // Most common alternative
+  // formData.append("image", file);  // Your current one
+  // formData.append("upload", file);  // Another common one
+  // formData.append("files", file);   // Another possibility
+
+  // Add debugging
+  console.log("File details:", {
+    name: file.name,
+    size: file.size,
+    type: file.type,
+    lastModified: file.lastModified,
+  });
+
+  console.log("FormData contents:");
+  for (let [key, value] of formData.entries()) {
+    console.log(key, value);
+  }
+
+  const response = await fetch(
+    "https://server.bizengo.com/api/vendor/upload-file",
+    {
+      method: "POST",
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+        // Don't manually set Content-Type for FormData
+      },
+      body: formData,
+    }
+  );
+
+  console.log("Response status:", response.status);
+  console.log(
+    "Response headers:",
+    Object.fromEntries(response.headers.entries())
+  );
+
+  if (!response.ok) {
+    const errorData = await response
+      .json()
+      .catch(() => ({ message: "Upload failed" }));
+    console.error("Upload response:", errorData);
+    throw new Error(errorData.message || `Upload failed: ${response.status}`);
+  }
+
+  const result = await response.json();
+  console.log("Success response:", result);
+
+  return {
+    id: result.id || result.data?.id,
+    url: result.url || result.data?.url || result.file_url,
+  };
+};
+const deleteImageFromServer = async (imageId: number): Promise<void> => {
+  const token = getVendorToken();
+  const response = await fetch(
+    `https://server.bizengo.com/api/vendor/delete-image/${imageId}`,
+    {
+      method: "DELETE",
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response
+      .json()
+      .catch(() => ({ message: "Delete failed" }));
+    throw new Error(errorData.message || `Delete failed: ${response.status}`);
+  }
+};
 
 const AddProductModal: React.FC<AddProductModalProps> = ({
   isOpen,
@@ -112,10 +203,15 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
     seoTitle: editingProduct?.seoTitle || "",
     seoDescription: editingProduct?.seoDescription || "",
     tags: editingProduct?.tags || [],
-    images: editingProduct?.images || [],
+    images: (editingProduct?.images || []).map((img: any) =>
+      typeof img === "string"
+        ? { url: img, isUploaded: true } // normalize backend strings
+        : img
+    ),
   });
 
   const [dragActive, setDragActive] = useState<boolean>(false);
+  const [uploadErrors, setUploadErrors] = useState<string[]>([]);
 
   const categoryOptions: SelectOption[] = [
     { value: "electronics", label: "Electronics" },
@@ -167,27 +263,151 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
     }));
   };
 
-  const handleImageUpload = (files: FileList | null): void => {
+  const handleImageUpload = async (files: FileList | null): Promise<void> => {
     if (!files) return;
 
-    const newImages: ProductImage[] = Array.from(files).map((file) => ({
+    setUploadErrors([]); // Clear previous errors
+
+    // Create temporary images with local URLs
+    const tempImages: ProductImage[] = Array.from(files).map((file) => ({
       id: Date.now() + Math.random(),
       file,
       url: URL.createObjectURL(file),
       alt: file.name,
+      isUploaded: false,
+      isUploading: true,
     }));
 
+    // Add temporary images to state immediately for UI feedback
     setFormData((prev) => ({
       ...prev,
-      images: [...prev.images, ...newImages],
+      images: [...prev.images, ...tempImages],
     }));
+
+    // Upload each image
+    const uploadPromises = tempImages.map(async (tempImage) => {
+      try {
+        const uploadResult = await uploadImageToServer(tempImage.file!);
+
+        // Update the image with server data
+        setFormData((prev) => ({
+          ...prev,
+          images: prev.images.map((img) =>
+            img.id === tempImage.id
+              ? {
+                  ...img,
+                  serverId: uploadResult.id,
+                  url: uploadResult.url,
+                  isUploaded: true,
+                  isUploading: false,
+                }
+              : img
+          ),
+        }));
+
+        return { success: true, imageId: tempImage.id };
+      } catch (error) {
+        console.error("Image upload failed:", error);
+
+        // Remove failed image from state
+        setFormData((prev) => ({
+          ...prev,
+          images: prev.images.filter((img) => img.id !== tempImage.id),
+        }));
+
+        // Add error message
+        setUploadErrors((prev) => [
+          ...prev,
+          `Failed to upload ${tempImage.alt}: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        ]);
+
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    });
+
+    await Promise.all(uploadPromises);
   };
 
-  const removeImage = (imageId: number): void => {
+  const removeImage = async (imageId: number): Promise<void> => {
+    const imageToRemove = formData.images.find((img) => img.id === imageId);
+
+    if (!imageToRemove) return;
+
+    // If image is uploaded to server, delete it from server first
+    if (imageToRemove.isUploaded && imageToRemove.serverId) {
+      try {
+        await deleteImageFromServer(imageToRemove.serverId);
+      } catch (error) {
+        console.error("Failed to delete image from server:", error);
+        setUploadErrors((prev) => [
+          ...prev,
+          `Failed to delete image: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        ]);
+        return; // Don't remove from UI if server deletion failed
+      }
+    }
+
+    // Remove image from state
     setFormData((prev) => ({
       ...prev,
       images: prev.images.filter((img) => img.id !== imageId),
     }));
+
+    // Revoke object URL to free memory
+    if (imageToRemove.url.startsWith("blob:")) {
+      URL.revokeObjectURL(imageToRemove.url);
+    }
+  };
+
+  const uploadAllImages = async (): Promise<boolean> => {
+    const unuploadedImages = formData.images.filter(
+      (img) => !img.isUploaded && img.file
+    );
+
+    if (unuploadedImages.length === 0) return true;
+
+    setUploadErrors([]);
+
+    const uploadPromises = unuploadedImages.map(async (image) => {
+      try {
+        const uploadResult = await uploadImageToServer(image.file!);
+
+        setFormData((prev) => ({
+          ...prev,
+          images: prev.images.map((img) =>
+            img.id === image.id
+              ? {
+                  ...img,
+                  serverId: uploadResult.id,
+                  url: uploadResult.url,
+                  isUploaded: true,
+                  isUploading: false,
+                }
+              : img
+          ),
+        }));
+
+        return { success: true };
+      } catch (error) {
+        setUploadErrors((prev) => [
+          ...prev,
+          `Failed to upload ${image.alt}: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        ]);
+        return { success: false };
+      }
+    });
+
+    const results = await Promise.all(uploadPromises);
+    return results.every((result) => result.success);
   };
 
   const handleDrag = (e: DragEvent<HTMLDivElement>): void => {
@@ -210,12 +430,44 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
     }
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-    onSave(formData);
+
+    // Check if all images are uploaded
+    const hasUnuploadedImages = formData.images.some(
+      (img: ProductImage) => !img.isUploaded
+    );
+
+    if (hasUnuploadedImages) {
+      alert("Please wait for all images to upload before saving the product.");
+      return;
+    }
+
+    // ✅ Map frontend -> backend structure
+    const payload = {
+      product_name: formData.name,
+      description: formData.description,
+      category: formData.category,
+      product_price: parseFloat(formData.price) || 0,
+      quantity: parseInt(formData.stock, 10) || 0,
+      status: formData.status || "active",
+      visibility: formData.visibility === "visible",
+      images: formData.images
+        .filter((img) => img.isUploaded)
+        .map((img) => img.url),
+    };
+
+    console.log("📦 Final Payload:", payload);
+
+    onSave(payload as any);
   };
 
   if (!isOpen) return null;
+
+  const hasUploadingImages = formData.images.some((img) => img.isUploading);
+  const hasUnuploadedImages = formData.images.some(
+    (img) => !img.isUploaded && img.file
+  );
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-1300 p-4">
@@ -330,6 +582,29 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
 
             {activeTab === "images" && (
               <div className="space-y-6">
+                {/* Upload Errors */}
+                {uploadErrors.length > 0 && (
+                  <div className="p-3 bg-error/10 border border-error/20 rounded-lg">
+                    <h4 className="text-sm font-medium text-error mb-2">
+                      Upload Errors:
+                    </h4>
+                    <ul className="text-sm text-error space-y-1">
+                      {uploadErrors.map((error, index) => (
+                        <li key={index}>• {error}</li>
+                      ))}
+                    </ul>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                      onClick={() => setUploadErrors([])}
+                    >
+                      Clear Errors
+                    </Button>
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Product Images
@@ -353,6 +628,9 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
                     <p className="text-muted-foreground mb-2">
                       Drag and drop images here, or click to select
                     </p>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      Images will be uploaded automatically
+                    </p>
                     <input
                       type="file"
                       multiple
@@ -369,11 +647,26 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
                       onClick={() =>
                         document.getElementById("image-upload")?.click()
                       }
+                      disabled={hasUploadingImages}
                     >
-                      Choose Files
+                      {hasUploadingImages ? "Uploading..." : "Choose Files"}
                     </Button>
                   </div>
                 </div>
+
+                {/* Upload All Button */}
+                {hasUnuploadedImages && (
+                  <div className="flex justify-center">
+                    <Button
+                      type="button"
+                      variant="default"
+                      onClick={uploadAllImages}
+                      disabled={hasUploadingImages}
+                    >
+                      Upload All Images
+                    </Button>
+                  </div>
+                )}
 
                 {formData.images.length > 0 && (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -385,19 +678,48 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
                             alt={image.alt}
                             className="w-full h-full object-cover"
                           />
+                          {image.isUploading && (
+                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                            </div>
+                          )}
                         </div>
+
                         <button
                           type="button"
                           onClick={() => removeImage(image.id)}
-                          className="absolute top-2 right-2 p-1 bg-error text-error-foreground rounded-full opacity-0 group-hover:opacity-100 transition-smooth"
+                          disabled={image.isUploading}
+                          className="absolute top-2 right-2 p-1 bg-error text-error-foreground rounded-full opacity-0 group-hover:opacity-100 transition-smooth disabled:opacity-50"
                         >
                           <Icon name="X" size={14} />
                         </button>
+
                         {index === 0 && (
                           <span className="absolute bottom-2 left-2 px-2 py-1 bg-primary text-primary-foreground text-xs rounded">
                             Main
                           </span>
                         )}
+
+                        {/* Upload Status */}
+                        <div className="absolute bottom-2 right-2">
+                          {image.isUploading && (
+                            <span className="px-2 py-1 bg-warning text-warning-foreground text-xs rounded">
+                              Uploading...
+                            </span>
+                          )}
+                          {image.isUploaded && (
+                            <span className="px-2 py-1 bg-success text-success-foreground text-xs rounded">
+                              ✓
+                            </span>
+                          )}
+                          {!image.isUploaded &&
+                            !image.isUploading &&
+                            image.file && (
+                              <span className="px-2 py-1 bg-muted text-muted-foreground text-xs rounded">
+                                Pending
+                              </span>
+                            )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -631,17 +953,23 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
               type="button"
               variant="outline"
               onClick={onClose}
-              disabled={loading || disabled}
+              disabled={loading || disabled || hasUploadingImages}
             >
               Cancel
             </Button>
             <Button
               type="submit"
               variant="default"
-              disabled={loading || disabled}
+              disabled={
+                loading || disabled || hasUploadingImages || hasUnuploadedImages
+              }
             >
               {loading
                 ? "Saving..."
+                : hasUploadingImages
+                ? "Uploading images..."
+                : hasUnuploadedImages
+                ? "Upload images first"
                 : editingProduct
                 ? "Update Product"
                 : "Save Product"}
